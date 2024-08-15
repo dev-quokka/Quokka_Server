@@ -7,10 +7,14 @@
 #include <sstream>
 #include <string>
 #include <map>
+
+#include "Define.h"
+
 #include <mysql.h>
 #pragma comment (lib, "libmysql.lib") // mysql 연동
 
 #pragma comment(lib, "ws2_32.lib") //비주얼에서 소켓프로그래밍 하기 위한 것
+#pragma comment(lib,"mswsock.lib") //AcceptEx를 사용하기 위한 것
 using namespace std;
 
 MYSQL Conn;
@@ -81,14 +85,26 @@ void login(char* buffer, int client_sock) {
 	//들어오는 문자열 나눠서 뿌려주기
 	istringstream iss(buffer);
 	int selectnum;
-	string id;
+	string user_id;
 	string password;
-	iss >> selectnum >> id >> password;
+	string temp_user_id;
+	string temp_password;
+	iss >> selectnum >> user_id >> password;
 
-	//있는 아이디 인지 찾기 위한 tempuser (나중에는 DB로 대체)
-	auto tempuser = users.find(id);
+	string query_s = "SELECT user_id,password FROM user WHERE user_id = '" + user_id+"'";
+	const char* Query = &*query_s.begin();
+	MysqlResult = mysql_query(ConnPtr, Query);
+	if (MysqlResult == 0) {
+		Result = mysql_store_result(ConnPtr);
+		while ((Row = mysql_fetch_row(Result))!= NULL) {
+			temp_user_id = Row[0];
+			temp_password = Row[1];
+		}
+		mysql_free_result(Result);
+	}
 
-	if (tempuser != users.end()) {
+
+	if (temp_user_id == user_id) {
 
 		/* 만약 운영자 아이가 입력되면 다른 기능 사용 할 수 있게 바꿔주기
 		운영자 접속 (특정 아이디 접속)
@@ -112,22 +128,22 @@ void login(char* buffer, int client_sock) {
 		}*/
 
 		//일반 유저
-		if (tempuser->second == password) {
+		if (temp_password == password) {
 
 			//id pass 전부 맞으면 1 보내기 (나중에는 뮤택스를 써서 cnt를 증가 시키거나 구분 할 수 있는 숫자를 보내주기)
 			send(client_sock, "2", PACKET_SIZE, 0);
 			new_users temp_user_struct;
-			temp_user_struct.id = tempuser->first;
+			temp_user_struct.id = temp_user_id;
 			temp_user_struct.client_soc = client_sock;
-			current_user[tempuser->first] = temp_user_struct;
+			current_user[temp_user_id] = temp_user_struct;
 
 			//서버에 접속한 사람 뜨게 하기
-			std::cout << "클라이언트 " << tempuser->first << " 연결완료" << endl << endl;
+			std::cout << "클라이언트 " << temp_user_id << " 연결완료" << endl << endl;
 
 			//나중에는 유저 추가 될때마다 미리 변수 선언해서 ++ 하고 --해가면서 굳이 size계산에 시간 날리지 말기
 			std::cout << "현재 접속인원 : " << current_user.size() << endl << endl;
 
-			partymember[client_sock].emplace_back(pair<string, bool>(tempuser->first,true)) ;
+			partymember[client_sock].emplace_back(pair<string, bool>(temp_user_id,true)) ;
 		}
 		else {
 			//틀리면 0 보내기
@@ -144,8 +160,8 @@ void sign_up(char* buffer) {
 	string password;
 	iss >> selectnum >> id >> password;
 	users[id] = password;
-	string k = "INSERT INTO user VALUES(NULL,'" +id+ "','" +password+ "')";
-	const char* Query = &*k.begin();
+	string query_s = "INSERT INTO user VALUES(NULL,'" +id+ "','" +password+ "')";
+	const char* Query = &*query_s.begin();
 	MysqlResult = mysql_query(ConnPtr, Query);
 	if (MysqlResult != 0) std::cout << "예외처리"<< endl;
 	else {
@@ -154,7 +170,17 @@ void sign_up(char* buffer) {
 	}
 }
 
+class packet {
+
+};
+
+// 서버단
+// 클라이언트 접속 하자마자 친구등록 되어있는 아이들에게 접속했다는 정보 바로 쏴주기.
+// {유저 클래스} 클라이언트는 접속 하자마자 룸num을 부여 받으며 그 num에 채팅 쓰레드가 자동 실행된다. (채팅쓰레드는 귓속말과 파티가 있으면 채팅을 계속해서 받을 수 있다.) + 
+
+
 int main() {
+
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2, 2), &wsa);
 
@@ -167,11 +193,6 @@ int main() {
 
 	quokka_friend_rcv["quokka"].emplace_back("meetquack");
 	quokka_friend_rcv["quokka"].emplace_back("raccoon");
-
-	users["woobin"] = "123";
-	users["yujin"] = "123";
-	users["wallaby"] = "123";
-	users["capybara"] = "123";
 
 	new_users woobin;
 	woobin.client_soc = 99999;
@@ -192,16 +213,10 @@ int main() {
 	//============== 더미 데이터 ================
 
 
-	skt = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+	skt = WSASocket(PF_INET, SOCK_STREAM, IPPROTO_TCP,NULL,NULL,WSA_FLAG_OVERLAPPED);
 
-	std::cout << "======================" << endl;
-	std::cout << "======================" << endl;
-	std::cout << "======================" << endl;
-	std::cout << "=======서버시작=======" << endl;
-	std::cout << "======================" << endl;
-	std::cout << "======================" << endl;
-	std::cout << "======================" << endl << endl << endl ;
-
+	std::cout << "서버시작" << endl;
+	std::cout << "======================" << endl << endl ;
 
 	SOCKADDR_IN addr = { 0 };
 	addr.sin_family = AF_INET;
@@ -209,7 +224,7 @@ int main() {
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	bind(skt, (SOCKADDR*)&addr, sizeof(addr));
-	listen(skt, SOMAXCONN);
+	listen(skt, 5);
 
 	SOCKADDR_IN client = {};
 	int client_size = sizeof(client);
@@ -251,7 +266,6 @@ int main() {
 			int selectnum_party_chat_i;
 			istringstream iss(buffer);
 			iss >> selectnum >> selectnum_party_chat_i >>req_id >> rcv_id;
-
 			
 			// 현재 파티 채팅에 입장합니다
 			if (selectnum_party_chat_i == 1) {
@@ -276,21 +290,6 @@ int main() {
 					}
 					Sleep(1000);
 					send(client_sock, "전체채팅전송", PACKET_SIZE, 0);
-
-					//	////띄어쓰기도 받기 위해서 cin말고 cin.getline 사용
-					//	//cin.getline(buffer, PACKET_SIZE, '\n');
-					//	//string finish = buffer;
-					//	//if (finish == "10101") {
-					//	//	send(client_sock, "10101", strlen(buffer), 0);
-					//	//	cout << "유저와 채팅 연결을 종료 하였습니다." << endl;
-					//	//	break;
-					//	//}
-					//	//cout << "서버 전달 : " << buffer << endl << endl;
-					//	//send(client_sock, buffer, strlen(buffer), 0);
-
-					//}
-
-					//proc2.join();
 
 				}
 			}
@@ -512,6 +511,7 @@ int main() {
 		//	iss >> selectnum >> in_id;
 		//	char buffer[PACKET_SIZE];
 		//	int friendsize = friends[in_id].size();
+		//  //int 값 char*로 바꾸고 전송
 		//	sprintf_s(buffer, sizeof(buffer), "%d", friendsize);
 		//	send(client_sock,buffer,PACKET_SIZE,0);
 		//}
@@ -522,7 +522,7 @@ int main() {
 			istringstream iss(buffer);
 			iss >> selectnum >> in_id;
 
-			//1. 하나씩 send 해주는것
+			//1. 하나씩 send 해주는것 (하나씩 보내면 서버에서 많은 일 해야하니까 클라에서 처리하도록 해보는건 어떨까 해서 2번까지 작성)
 			/*for (auto k : quokka_friends) {
 				string temp_friend = k.second;
 				char buffer[PACKET_SIZE];
@@ -530,7 +530,7 @@ int main() {
 				send(client_sock, buffer,PACKET_SIZE,0 );
 			}*/
 
-			//2. 공백 구분자로 묶어서 string으로 보내기
+			// 2. 공백 구분자로 묶어서 한번에 string으로 보내고 클라이언트에서 구분자로 나눠서 출력되게
 			string temp_friend;
 			for (auto k : friends[in_id]) {
 				if (k.second == 1)
