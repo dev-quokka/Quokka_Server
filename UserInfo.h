@@ -8,11 +8,13 @@ class UserInfo {
 
 public:
 
+	bool IsConnect() { return uIsConnect == 1; }
+
 	int getUserPartyIdx() { return UserPartyIdx; }
 	int getUserIdx() { return UserIdx; }
 
-	bool IsConnect() { return uIsConnect == 1; }
-	
+	char* RecvBuffer() { return RecvBuf; }
+
 	SOCKET getSocketNum() { return uSocket; }
 
 	void Init(const UINT32 index, HANDLE iocpHandle_)
@@ -129,6 +131,27 @@ public:
 		return true;
 	}
 
+	bool SendMsg(const UINT32 dataSize_, char* pMsg_)
+	{
+		auto sendOverlappedEx = new OverlappedEx;
+		ZeroMemory(sendOverlappedEx, sizeof(OverlappedEx));
+		sendOverlappedEx->m_wsaBuf.len = dataSize_;
+		sendOverlappedEx->m_wsaBuf.buf = new char[dataSize_];
+		CopyMemory(sendOverlappedEx->m_wsaBuf.buf, pMsg_, dataSize_);
+		sendOverlappedEx->m_eOperation = IOOperation::SEND;
+
+		std::lock_guard<std::mutex> guard(SendLock);
+
+		SendDataqueue.push(sendOverlappedEx);
+
+		if (SendDataqueue.size() == 1)
+		{
+			SendIO();
+		}
+
+		return true;
+	}
+
 	void Close(bool bIsForce_ = false)
 	{
 		struct linger stLinger = { 0, 0 };	// SO_DONTLINGER로 설정
@@ -149,6 +172,23 @@ public:
 		//소켓 연결을 종료 시킨다.
 		closesocket(uSocket);
 		uSocket = INVALID_SOCKET;
+	}
+
+	void SendCompleted(const UINT32 dataSize_)
+	{
+		std::cout << "[송신 완료] bytes : "<< dataSize_ << std::endl;
+
+		std::lock_guard<std::mutex> guard(SendLock);
+
+		delete[] SendDataqueue.front()->m_wsaBuf.buf;
+		delete SendDataqueue.front();
+
+		SendDataqueue.pop();
+
+		if (SendDataqueue.empty() == false)
+		{
+			SendIO();
+		}
 	}
 
 
@@ -178,13 +218,14 @@ private:
 	}
 
 
-	// 유저 인덱스 번호
-	int UserIdx;
-	int UserPartyIdx = 0;
-	int uIsConnect = 0;
+	UINT16 userPkNum;
+	UINT16 UserIdx;
+	UINT16 UserPartyIdx = 0;
+	INT16 uIsConnect = 0;
 
 	char uAcceptBuf[64];
 	char uRecvBuf[MAX_SOCK_RECVBUF]; //데이터 수신 버퍼
+	char RecvBuf[MAX_SOCK_RECVBUF]; //데이터 버퍼
 
 	std::mutex rLock;
 	std::mutex SendLock;
@@ -194,7 +235,7 @@ private:
 	SOCKET uSocket;
 
 	std::queue<OverlappedEx*> SendDataqueue;
-
+	
 	OverlappedEx uAcceptContext;
 	OverlappedEx uAcceptOverlappedEx;
 };

@@ -18,3 +18,6 @@ void PacketManager::Init(const UINT32 maxClient_)
 
 }
 
+void PacketManager::ReceivePacketData(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
+
+};

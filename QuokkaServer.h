@@ -16,14 +16,13 @@
 
 class QuokkaServer {
 
+public:
+
 	QuokkaServer() {};
 	~QuokkaServer() {
 		// 소멸할때 윈속사용, 데이터베이스 사용 종료
 		WSACleanup();
-		mysql_close(ConnPtr);
 	};
-
-public:
 
 	void OnConnect(const UINT32 clientIndex_)
 	{
@@ -48,8 +47,24 @@ public:
 		m_pPacketManager->ReceivePacketData(clientIndex_, size_, pData_);
 	}
 
+	void Run(const UINT32 maxClient)
+	{
+		auto sendPacketFunc = [&](UINT32 clientIndex_, UINT16 packetSize, char* pSendPacket)
+			{
+				SendMsg(clientIndex_, packetSize, pSendPacket);
+			};
+
+		m_pPacketManager = std::make_unique<PacketManager>();
+		m_pPacketManager->SendPacketFunc = sendPacketFunc;
+		m_pPacketManager->Init(maxClient);
+		m_pPacketManager->Run();
+
+		StartServer(maxClient);
+	}
+
+
 	// 리슨 소켓생성 함수
-	bool init(const UINT32 maxIOWorkerThreadCnt)
+	bool Init(const UINT32 maxIOWorkerThreadCnt)
 	{
 		WSADATA wsadata;
 
@@ -72,7 +87,7 @@ public:
 	}
 
 	// 소켓 바인드 함수
-	bool BindSocket(int binport) {
+	bool BindandListen(int binport) {
 		SOCKADDR_IN addr = { 0 };
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(binport);
@@ -104,6 +119,42 @@ public:
 		std::cout << "서버시작" << std::endl;
 		std::cout << "======================" << std::endl << std::endl;
 		return true;
+	}
+
+	bool SendMsg(const UINT32 clientIndex_, const UINT32 dataSize_, char* pData)
+	{
+		auto Client = GetClientInfo(clientIndex_);
+		return Client->SendMsg(dataSize_, pData);
+	}
+
+	void DestroyThread()
+	{
+		WorkRun = false;
+		CloseHandle(sIOCPHandle);
+
+		for (auto& th : IOWorkerThread)
+		{
+			if (th.joinable())
+			{
+				th.join();
+			}
+		}
+
+		//Accepter 쓰레드를 종요한다.
+		AccepterRun = false;
+		closesocket(ListenSkt);
+
+		if (AcceptThread.joinable())
+		{
+			AcceptThread.join();
+		}
+	}
+
+	void End()
+	{
+		m_pPacketManager->End();
+
+		DestroyThread();
 	}
 
 private:
@@ -165,14 +216,14 @@ private:
 			//Overlapped I/O Recv작업 결과 뒤 처리
 			else if (IOOperation::RECV == pOverlappedEx->m_eOperation)
 			{
-				/*OnReceive(userInfo->GetIndex(), dwIoSize, userInfo->RecvBuffer());
+				OnReceive(userInfo->getUserIdx(), dwIoSize, userInfo->RecvBuffer());
 
-				userInfo->BindRecv();*/
+				userInfo->BindRecv();
 			}
 			//Overlapped I/O Send작업 결과 뒤 처리
 			else if (IOOperation::SEND == pOverlappedEx->m_eOperation)
 			{
-				/*userInfo->SendCompleted(dwIoSize);*/
+				userInfo->SendCompleted(dwIoSize);
 			}
 
 		}
