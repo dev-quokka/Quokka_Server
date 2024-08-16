@@ -9,6 +9,32 @@ struct PacketInfo
 	char* pDataPtr = nullptr;
 };
 
+struct PACKET_HEADER
+{
+	UINT16 PacketLength;
+	UINT16 PacketId;
+	UINT8 encryption; //압축여부 암호화여부 등 속성을 알아내는 값
+};
+
+const int MAX_USER_ID_LEN = 32;
+const int MAX_USER_PW_LEN = 32;
+
+struct LOGIN_REQUEST_PACKET : public PACKET_HEADER
+{
+	char UserID[MAX_USER_ID_LEN + 1];
+	char UserPW[MAX_USER_PW_LEN + 1];
+};
+
+struct PARTY_ENTER_REQUEST : public PACKET_HEADER
+{ 
+	UINT8 PartyNum;
+};
+
+struct PARTY_ENTER_RESPONSE : public PACKET_HEADER
+{
+
+};
+
 enum class  PACKET_ID : UINT16
 {
 	//SYSTEM
@@ -23,10 +49,14 @@ enum class  PACKET_ID : UINT16
 	LOGIN_REQUEST = 201,
 	LOGIN_RESPONSE = 202,
 
+	MAKE_PARTY_REQUEST = 204,
+	MAKE_PARTY_RESPONSE = 205,
+
 	PARTY_ENTER_REQUEST = 206,
 	PARTY_ENTER_RESPONSE = 207, // 인원이 가득 차면 보내는 메시지
 
 	PARTY_ORGANIZER_CHANGE_REQUEST = 209,
+	PARTY_ORGANIZER_CHANGE_RESPONSE = 210,
 
 	PARTY_EXILE_REQUEST = 211,
 	PARTY_EXILE_RESPONSE = 212,

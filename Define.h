@@ -17,3 +17,5 @@ struct OverlappedEx {
 	IOOperation m_eOperation;			//작업 동작 종류
 	UINT32 SessionIndex = 0;			//유저 인덱스
 };
+
+// 256*101 - 256/3 + 소켓

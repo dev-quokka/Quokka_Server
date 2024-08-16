@@ -39,6 +39,7 @@ public :
 
 private:
 
+	UINT16 userPkNum;
 	UINT8 userIdx;
 	UINT8 partyIdx = 0;
 
