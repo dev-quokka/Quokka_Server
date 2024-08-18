@@ -18,4 +18,4 @@ struct OverlappedEx {
 	UINT32 SessionIndex = 0;			//유저 인덱스
 };
 
-// 256*101 - 256/3 + 소켓
+// 암호 256*101 - 256/3 + 소켓

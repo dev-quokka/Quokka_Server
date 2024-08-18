@@ -138,7 +138,7 @@
   <ItemGroup>
     <ClInclude Include="Define.h" />
     <ClInclude Include="ErrorCode.h" />
-    <ClInclude Include="MySQLManger.h" />
+    <ClInclude Include="MySQLManager.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketManager.h" />
     <ClInclude Include="PartyManager.h" />

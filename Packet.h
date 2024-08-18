@@ -16,6 +16,8 @@ struct PACKET_HEADER
 	UINT8 encryption; //압축여부 암호화여부 등 속성을 알아내는 값
 };
 
+const UINT32 PACKET_HEADER_LENGTH = sizeof(PACKET_HEADER);
+
 const int MAX_USER_ID_LEN = 32;
 const int MAX_USER_PW_LEN = 32;
 
@@ -25,9 +27,11 @@ struct LOGIN_REQUEST_PACKET : public PACKET_HEADER
 	char UserPW[MAX_USER_PW_LEN + 1];
 };
 
+const size_t LOGIN_REQUEST_PACKET_SIZE = sizeof(LOGIN_REQUEST_PACKET);
+
 struct PARTY_ENTER_REQUEST : public PACKET_HEADER
 { 
-	UINT8 PartyNum;
+	UINT32 clientIdx;
 };
 
 struct PARTY_ENTER_RESPONSE : public PACKET_HEADER

@@ -1,6 +1,6 @@
 #pragma once
 
-enum class ERROR_CODE : unsigned short
+enum class ERROR_CODE : UINT16
 {
 	NONE = 0,
 
@@ -20,8 +20,10 @@ enum class ERROR_CODE : unsigned short
 	USER_MGR_INVALID_USER_UNIQUEID = 12,
 
 	LOGIN_USER_ALREADY = 31,
-	LOGIN_USER_USED_ALL_OBJ = 32,
-	LOGIN_USER_INVALID_PW = 33,*/
+	LOGIN_USER_USED_ALL_OBJ = 32,*/
+
+	LOGIN_USER_INVALID_ID = 32,
+	LOGIN_USER_INVALID_PW = 33,
 
 	/*NEW_ROOM_USED_ALL_OBJ = 41,
 	NEW_ROOM_FAIL_ENTER = 42,

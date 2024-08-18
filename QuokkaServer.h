@@ -121,6 +121,25 @@ public:
 		return true;
 	}
 
+	bool StartServer(const UINT32 maxClientCount_)
+	{
+		CreateClient(maxClientCount_);
+		
+		//접속된 클라이언트 주소 정보를 저장할 구조체
+		bool bRet = CreateWorkThread();
+		if (false == bRet) {
+			return false;
+		}
+
+		bRet = CreateAccepterThread();
+		if (false == bRet) {
+			return false;
+		}
+		
+		printf("서버 시작\n");
+		return true;
+	}
+
 	bool SendMsg(const UINT32 clientIndex_, const UINT32 dataSize_, char* pData)
 	{
 		auto Client = GetClientInfo(clientIndex_);
@@ -181,10 +200,11 @@ private:
 		LPOVERLAPPED lpOverlapped = NULL;
 		UserInfo* userInfo = nullptr;
 		DWORD dwIoSize = 0;
+		bool gqSucces = false; // 함수 호출 성공 여부 (false면 네트워크 접속이 비정상으로 끊겼을 때)
 
 		while (WorkRun) {
 
-			ComQueStatus = GetQueuedCompletionStatus(
+			gqSucces = GetQueuedCompletionStatus(
 				(HANDLE)ListenSkt,
 				&dwIoSize,
 				(PULONG_PTR)&userInfo,
@@ -194,6 +214,14 @@ private:
 			);
 
 			auto pOverlappedEx = (OverlappedEx*)lpOverlapped;
+
+			//client가 접속을 끊었을때
+			if (FALSE == gqSucces || (0 == dwIoSize && IOOperation::ACCEPT != pOverlappedEx->m_eOperation))
+			{
+				std::cout << "socket "<<userInfo->getSocketNum() << " 접속 끊김" << std::endl;
+				CloseSocket(userInfo); //Caller WokerThread()
+				continue;
+			}
 
 			if (IOOperation::ACCEPT == pOverlappedEx->m_eOperation)
 			{
@@ -246,7 +274,7 @@ private:
 		OnClose(clientIndex);
 	}
 
-	bool CreateWorkerThread() {
+	bool CreateWorkThread() {
 		for (int i = 0; i < MaxIOWorkerThreadCnt; i++) {
 			IOWorkerThread.emplace_back([this]() {WorkThread(); });
 		}
