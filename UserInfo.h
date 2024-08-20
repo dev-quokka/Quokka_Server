@@ -131,27 +131,6 @@ public:
 		return true;
 	}
 
-	bool SendMsg(const UINT32 dataSize_, char* pMsg_)
-	{
-		auto sendOverlappedEx = new OverlappedEx;
-		ZeroMemory(sendOverlappedEx, sizeof(OverlappedEx));
-		sendOverlappedEx->m_wsaBuf.len = dataSize_;
-		sendOverlappedEx->m_wsaBuf.buf = new char[dataSize_];
-		CopyMemory(sendOverlappedEx->m_wsaBuf.buf, pMsg_, dataSize_);
-		sendOverlappedEx->m_eOperation = IOOperation::SEND;
-
-		std::lock_guard<std::mutex> guard(SendLock);
-
-		SendDataqueue.push(sendOverlappedEx);
-
-		if (SendDataqueue.size() == 1)
-		{
-			SendIO();
-		}
-
-		return true;
-	}
-
 	void Close(bool bIsForce_ = false)
 	{
 		struct linger stLinger = { 0, 0 };	// SO_DONTLINGER로 설정
@@ -172,6 +151,62 @@ public:
 		//소켓 연결을 종료 시킨다.
 		closesocket(uSocket);
 		uSocket = INVALID_SOCKET;
+	}
+
+	bool SendMsgS(const UINT32 dataSize_, std::vector<std::vector<std::string>> stringBufs_)
+	{
+		// 데이터가 여러개 들어올때
+		std::vector<std::vector<std::string>> stringBufs =	stringBufs_;
+		std::vector<WSABUF> wsaBuf;
+
+		for (auto stringbuf : stringBufs_) {
+			WSABUF wsabuf;
+			for (int i = 0; i < stringbuf.size(); i++) {
+
+			}
+			wsabuf.buf = reinterpret_cast<char*>(stringbuf);
+			wsabuf.len = static_cast<LONG>(stringbuf);
+			wsaBuf.emplace_back(wsabuf);
+		}
+
+		auto sendOverlappedEx = new OverlappedEx;
+		ZeroMemory(sendOverlappedEx, sizeof(OverlappedEx));
+		sendOverlappedEx->m_wsaBuf.len = dataSize_;
+		sendOverlappedEx->m_wsaBuf.buf = new char[dataSize_];
+		sendOverlappedEx->m_wsaBufCnt = intBufs.size();
+		sendOverlappedEx->m_eOperation = IOOperation::SEND;
+
+		std::lock_guard<std::mutex> guard(SendLock);
+
+		SendDataqueue.push(sendOverlappedEx);
+
+		if (SendDataqueue.size() == 1)
+		{
+			SendIO();
+		}
+
+		return true;
+	}
+
+	bool SendMsg(const UINT32 dataSize_, char* pMsg_)
+	{
+		auto sendOverlappedEx = new OverlappedEx;
+		ZeroMemory(sendOverlappedEx, sizeof(OverlappedEx));
+		sendOverlappedEx->m_wsaBuf.len = dataSize_;
+		sendOverlappedEx->m_wsaBuf.buf = new char[dataSize_];
+		CopyMemory(sendOverlappedEx->m_wsaBuf.buf, pMsg_, dataSize_);
+		sendOverlappedEx->m_eOperation = IOOperation::SEND;
+
+		std::lock_guard<std::mutex> guard(SendLock);
+
+		SendDataqueue.push(sendOverlappedEx);
+
+		if (SendDataqueue.size() == 1)
+		{
+			SendIO();
+		}
+
+		return true;
 	}
 
 	void SendCompleted(const UINT32 dataSize_)
@@ -201,7 +236,7 @@ private:
 		DWORD dwRecvNumBytes = 0;
 		int nRet = WSASend(uSocket,
 			&(sendOverlappedEx->m_wsaBuf),
-			1,
+			sendOverlappedEx->m_wsaBufCnt,
 			&dwRecvNumBytes,
 			0,
 			(LPWSAOVERLAPPED)sendOverlappedEx,

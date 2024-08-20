@@ -10,7 +10,7 @@
 #include "UserInfo.h"
 #include "Define.h"
 #include "Packet.h"
-#include "MySQLManger.h"
+#include "MySQLManager.h"
 #include "PacketManager.h"
 #include "Packet.h"
 
@@ -20,7 +20,6 @@ public:
 
 	QuokkaServer() {};
 	~QuokkaServer() {
-		// 소멸할때 윈속사용, 데이터베이스 사용 종료
 		WSACleanup();
 	};
 
@@ -52,6 +51,11 @@ public:
 		auto sendPacketFunc = [&](UINT32 clientIndex_, UINT16 packetSize, char* pSendPacket)
 			{
 				SendMsg(clientIndex_, packetSize, pSendPacket);
+			};
+
+		auto sendPacketSFunc = [&](UINT32 clientIndex_, UINT16 packetSize, std::vector<int> intBufs_)
+			{
+				SendMsgS(clientIndex_, packetSize, intBufs_);
 			};
 
 		m_pPacketManager = std::make_unique<PacketManager>();
@@ -144,6 +148,12 @@ public:
 	{
 		auto Client = GetClientInfo(clientIndex_);
 		return Client->SendMsg(dataSize_, pData);
+	}
+
+	bool SendMsgS(const UINT32 clientIndex_, const UINT32 dataSize_, std::vector<int> intBufs_)
+	{
+		auto Client = GetClientInfo(clientIndex_);
+		return Client->SendMsgS(dataSize_, intBufs_);
 	}
 
 	void DestroyThread()

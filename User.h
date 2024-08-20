@@ -15,14 +15,14 @@ public :
 
 	void Init(const INT32 index_)
 	{
-		userIdx = index_;
+		UserIdx = index_;
 		PakcetDataBuffer = new char[PACKET_DATA_BUFFER_SIZE];
 	}
 
 	void Clear()
 	{
-		partyIdx = -1;
-		userID = "";
+		PartyIdx = -1;
+		UserID = "";
 		/*mIsConfirm = false;*/
 		CurDomainState = USER_STATE::NONE;
 
@@ -33,8 +33,8 @@ public :
 	int SetLogin(char* userID_,int userPKNum_)
 	{
 		CurDomainState = USER_STATE::LOGIN;
-		userID = userID_;
-		userPkNum = userPKNum_;
+		UserID = userID_;
+		UserPkNum = userPKNum_;
 		return 0;
 	}
 
@@ -60,12 +60,20 @@ public :
 		
 	}
 
-	int GetUserPKNum() {
-		return userPkNum;
+	UINT16 GetUserPKNum() {
+		return UserPkNum;
 	}
 
-	std::string getUserId() {
-		return userID;
+	UINT16 GetUserLevel() {
+		return UserLevel;
+	}
+
+	std::vector<int> GetUserFriendsPKNums() {
+		return Friends;
+	}
+
+	std::string GetUserId() {
+		return UserID;
 	}
 
 	void SetPacketData(const UINT32 dataSize_, char* pData_)
@@ -123,11 +131,12 @@ public :
 
 private:
 
-	UINT16 userPkNum;
-	UINT8 userIdx;
-	UINT8 partyIdx = 0;
+	UINT8 UserIdx;
+	UINT8 PartyIdx = 0;
+	UINT16 UserLevel = 0;
+	UINT16 UserPkNum;
 
-	std::string userID;
+	std::string UserID;
 
 	USER_STATE CurDomainState = USER_STATE::NONE;
 
@@ -136,9 +145,10 @@ private:
 
 	char* PakcetDataBuffer = nullptr;
 
-	std::vector<int> friends;
-	
-	// 접속하면 모든 친구에게 나 접속했다는 정보 보내기
+	// 처음 접속하면 가져오는 친구정보랑 친구 요청 정보
+	std::vector<int> Friends;
+
+	std::vector<int> FriendsRequest;
 	
 	// 클라이언트에는 처음 정보 다 받고 저장 해두고 서버에서는 pk번호만 저장해놔서 나중에 그 아이에게 파티 따라가기등 바로 할 수 있게 설정하기
 	// 쓰레드 돌리면서 그 친구 접속 하면 업데이트 하는 쓰레드 만들어 줘야함

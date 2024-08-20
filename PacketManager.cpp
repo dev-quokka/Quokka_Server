@@ -2,6 +2,7 @@
 #include "UserManager.h"
 #include "PartyManager.h"
 #include "MySQLManager.h"
+#include "ErrorCode.h"
 
 void PacketManager::Init(const UINT32 maxClient_)
 {
@@ -17,7 +18,10 @@ void PacketManager::Init(const UINT32 maxClient_)
 	RecvFuntionDictionary[(int)PACKET_ID::PARTY_CHAT_REQUEST] = &PacketManager::PartyChatMessage;
 
 	RecvFuntionDictionary[(int)PACKET_ID::WHISPER_CHAT_REQUEST] = &PacketManager::Whisper;
+
+	RecvFuntionDictionary[(int)PACKET_ID::FIND_USER_REQUEST] = &PacketManager::FindUserById;
 	
+	RecvFuntionDictionary[(int)PACKET_ID::FRIEND_REQUEST] = &PacketManager::FriendRequest;
 }
 
 bool PacketManager::Run()
@@ -139,5 +143,100 @@ void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket
 	auto UserId = LoginReqPacket->UserID;
 	auto UserPassword = LoginReqPacket->UserPW;
 
+	int LoginDBResult = mySQLManager->MysqlLoginCheck(UserId,UserPassword);
 
+	LOGIN_RESPONSE_PACKET LoginResPacket;
+	LoginResPacket.PacketId = (UINT16)PACKET_ID::LOGIN_RESPONSE;
+	LoginResPacket.PacketLength = sizeof(LOGIN_RESPONSE_PACKET);
+
+	// 유저가 가득 차 있을때
+	if (userManager->GetCurrentUserCnt() >= userManager->GetUserMaxCnt())
+	{
+		//접속자수가 최대수를 차지해서 접속불가
+		LoginResPacket.LoginResult = (UINT16)ERROR_CODE::LOGIN_USER_FULL;
+		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
+		return;
+	}
+
+	// 아이디가 다를때
+	if (LoginDBResult == -1) {
+		LoginResPacket.LoginResult = (UINT16)ERROR_CODE::LOGIN_USER_INVALID_ID;
+		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
+		return;
+	}
+
+	// 비밀번호가 다를때
+	else if (LoginDBResult ==  -2) {
+		LoginResPacket.LoginResult = (UINT16)ERROR_CODE::LOGIN_USER_INVALID_PW;
+		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
+		return;
+	}
+
+	else {
+		userManager->AddUser(clientIndex_, LoginDBResult, UserId);
+
+		// 이미 유저가 로그인 중 일때
+		if (userManager->FindUserByPK(LoginDBResult)!=-1) {
+			//접속중인 유저여서 실패를 반환.
+			LoginResPacket.LoginResult = (UINT16)ERROR_CODE::LOGIN_USER_ALREADY;
+			SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
+			return;
+		}
+
+		LoginResPacket.LoginResult = (UINT16)ERROR_CODE::NONE;
+		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
+		std::cout << "유저 " << UserId << " 접속" << std::endl;
+
+		// 그 유저 친구목록 뿌려주고 친구인 아이들에게 접속했다는 메시지 보내주기
+
+
+		return;
+	}
+}
+
+void PacketManager::FindUserById(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
+
+	auto FindUserPacket = reinterpret_cast<FIND_USER_REQUEST*>(pPacket_);
+	auto UserId = FindUserPacket->UserID;
+
+	UINT32 LoginResult = mySQLManager->FindUserById(UserId);
+
+	FIND_USER_RESPONSE FindUserRes;
+
+	FindUserRes.PacketId = (UINT16)PACKET_ID::FIND_USER_RESPONSE;
+	FindUserRes.PacketLength = sizeof(FIND_USER_RESPONSE);
+
+	// 그 아이디 친구 없을 때
+	if (LoginResult==-1) {
+		FindUserRes.userPKNum = (UINT16)ERROR_CODE::FIND_NO_USER;
+		SendPacketFunc(clientIndex_, sizeof(FIND_USER_RESPONSE), (char*)&FindUserRes);
+		return;
+	}
+
+	FindUserRes.userPKNum = LoginResult;
+	SendPacketFunc(clientIndex_, sizeof(FIND_USER_RESPONSE), (char*)&FindUserRes);
+}
+
+void PacketManager::FindUserFriends(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
+
+	auto FindFriendsPacket = reinterpret_cast<FIND_FRIENDS_REQUEST*>(pPacket_);
+	auto UserPKNum = FindFriendsPacket->userPKNum;
+
+	std::vector<int> Friends = mySQLManager->FindUserFriends(UserPKNum);
+
+
+}
+
+void PacketManager::FindUserFriendsInfo(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
+
+	auto FindFriendsPacket = reinterpret_cast<FIND_FRIENDS_REQUEST*>(pPacket_);
+	auto UserPKNum = FindFriendsPacket->userPKNum;
+
+	std::vector<int> Friends = userManager->GetUserByIdx(clientIndex_)->GetUserFriendsPKNums();
+
+
+}
+
+void PacketManager::FriendRequest(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
+	
 }
