@@ -14,6 +14,7 @@ enum class IOOperation {
 struct OverlappedEx {
 	WSAOVERLAPPED m_wsaOverlapped;		//Overlapped I/O구조체
 	WSABUF		m_wsaBuf;				//Overlapped I/O작업 버퍼
+	DWORD       m_wsaBufCnt=1;			//Overlapped I/O작업 버퍼개수
 	IOOperation m_eOperation;			//작업 동작 종류
 	UINT32 SessionIndex = 0;			//유저 인덱스
 };

@@ -10,10 +10,14 @@
 class UserManager {
 public:
 
-	int GetUserMaxCnt() {
+	INT32 GetUserMaxCnt() {
 		return maxUserCnt;
 	}
 
+	INT32 GetCurrentUserCnt() {
+		return CurrentUserCnt;
+	}
+		 
 	void Init(int maxUserCnt_) {
 		maxUserCnt = maxUserCnt_;
 
@@ -22,21 +26,28 @@ public:
 	void AddUser(int userIdx_,int userPKNum_,char* userID_) {
 		std::lock_guard<std::mutex> guard(auLock);
 		users[userIdx_]->SetLogin(userID_,userPKNum_);
-		usersMap[userPKNum_] = userIdx_;
+		currentUserMap[userPKNum_] = userIdx_;
+		// 친구 유저 정보 요청
 	}
 	
 	// 친구 찾기
-	int FindUserIdx(char* userId_) {
-		
+	INT32 FindUserByPK(int userPKNum_) {
+		auto res = currentUserMap.find(userPKNum_);
+		if (res != currentUserMap.end())
+		{
+			return (*res).second;
+		}
+
+		return -1;
 	}
 
 	void DeleteUserInfo(User* user_)
 	{
-		usersMap.erase(user_->GetUserPKNum());
+		currentUserMap.erase(user_->GetUserPKNum());
 		user_->Clear();
 	}
 
-	User* GetUserByConnIdx(INT32 clientIndex_)
+	User* GetUserByIdx(INT32 clientIndex_)
 	{
 		return users[clientIndex_];
 	}
@@ -50,6 +61,6 @@ private:
 	
 	std::vector<User*> users;
 
-	std::unordered_map<int, int> usersMap; // 유저 아이디로 그 유저 구조체 알기 위한 idx 찾기 가능
+	std::unordered_map<int, int> currentUserMap; // 유저 아이디로 그 유저 구조체 알기 위한 idx 찾기 가능
 
 };
