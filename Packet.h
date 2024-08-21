@@ -50,18 +50,44 @@ struct FIND_FRIENDS_REQUEST : public PACKET_HEADER
 	UINT32 userPKNum;
 };
 
-struct FRIEND_REQUEST : public PACKET_HEADER
+struct FRIEND_REQUEST_REQUEST : public PACKET_HEADER
 {
-	UINT32 userPKNum;
+	UINT32 reqUserPKNum;
+	UINT32 resUserPKNum;
 };
 
-struct NEW_PARTY_REQUEST : public PACKET_HEADER
+struct FRIEND_REQUEST_RESPONSE : public PACKET_HEADER
 {
-	UINT32 requestUserPKNum;
-	UINT32 requestedUserPKNum;
+	UINT16 FriendsReq_Res;
 };
 
-struct NEW_PARTY_RESPONSE : public PACKET_HEADER
+struct FRIEND_REQUEST_CANCEL_REQUEST : public PACKET_HEADER
+{
+	UINT32 reqUserPKNum;
+	UINT32 resUserPKNum;
+};
+
+struct FRIEND_REQUEST_CANCEL_RESPONSE : public PACKET_HEADER
+{
+	UINT16 FriendsReqCancel_Res;
+};
+
+struct DELETE_FRIEND_REQUEST :public PACKET_HEADER {
+	UINT32 reqUserPKNum;
+	UINT32 resUserPKNum;
+};
+
+struct DELETE_FRIEND_RESPONSE :public PACKET_HEADER {
+	UINT16 DelFriendRes;
+};
+
+struct MAKE_PARTY_REQUEST : public PACKET_HEADER
+{
+	UINT32 reqUserPKNum;
+	UINT32 resUserPKNum;
+};
+
+struct MAKE_PARTY_RESPONSE : public PACKET_HEADER
 {
 	UINT16 partyNum;
 };
