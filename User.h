@@ -132,8 +132,8 @@ public :
 private:
 
 	UINT8 UserIdx;
-	UINT8 PartyIdx = 0;
-	UINT16 UserLevel = 0;
+	UINT8 PartyIdx = -1;
+	UINT16 UserLevel = 1;
 	UINT16 UserPkNum;
 
 	std::string UserID;

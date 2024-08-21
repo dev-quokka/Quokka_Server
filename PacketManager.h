@@ -88,8 +88,16 @@ private:
 
 	void FriendRequest(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {}
 
+	//친구요청 취소
+	void FriendRequestCancel(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {}
+
+	//친구 삭제
+	void DeleteFriend(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {}
 
 	//==== <파티> ====
+
+	// 파티 생성
+	void MakeParty(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {}
 
 	// 파티 초대 (초대를 하고 요청하거나 받기)
 	void PartyInvite(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {}

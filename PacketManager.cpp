@@ -76,7 +76,7 @@ PacketInfo PacketManager::DequePacketData()
 		UserPacketIndex.pop_front();
 	}
 
-	auto pUser = userManager->GetUserByConnIdx(userIndex);
+	auto pUser = userManager->GetUserByIdx(userIndex);
 	auto packetData = pUser->GetPacket();
 	packetData.ClientIndex = userIndex;
 	return packetData;
@@ -125,7 +125,7 @@ void PacketManager::ProcessPacket()
 }
 
 void PacketManager::ReceivePacketData(const UINT32 clientIndex_, const UINT32 size_, char* pData_) {
-	auto pUser = userManager->GetUserByConnIdx(clientIndex_);
+	auto pUser = userManager->GetUserByIdx(clientIndex_);
 	pUser->SetPacketData(size_, pData_);
 
 	EnqueuePacketData(clientIndex_);
@@ -158,6 +158,7 @@ void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket
 		return;
 	}
 
+
 	// 아이디가 다를때
 	if (LoginDBResult == -1) {
 		LoginResPacket.LoginResult = (UINT16)ERROR_CODE::LOGIN_USER_INVALID_ID;
@@ -188,8 +189,6 @@ void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket
 		std::cout << "유저 " << UserId << " 접속" << std::endl;
 
 		// 그 유저 친구목록 뿌려주고 친구인 아이들에게 접속했다는 메시지 보내주기
-
-
 		return;
 	}
 }
@@ -238,5 +237,59 @@ void PacketManager::FindUserFriendsInfo(UINT32 clientIndex_, UINT16 packetSize_,
 }
 
 void PacketManager::FriendRequest(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
-	
+
+	auto FriendReqPacket = reinterpret_cast<FRIEND_REQUEST_REQUEST*>(pPacket_);
+	auto FriendReqResult = mySQLManager->FriendRequest(FriendReqPacket->reqUserPKNum, FriendReqPacket->resUserPKNum);
+
+	FRIEND_REQUEST_RESPONSE FriendsReq_Res;
+	FriendsReq_Res.FriendsReq_Res = (UINT16)FriendReqResult;
+	SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&FriendsReq_Res);
 }
+
+void PacketManager::FriendRequestCancel(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
+
+	auto FriendReqCancelPacket = reinterpret_cast<FRIEND_REQUEST_CANCEL_REQUEST*>(pPacket_);
+	auto FriendReqCancelResult = mySQLManager->FriendRequestCancel(FriendReqCancelPacket->reqUserPKNum, FriendReqCancelPacket->resUserPKNum);
+
+	FRIEND_REQUEST_CANCEL_RESPONSE FriendsReqCancel_Res;
+	FriendsReqCancel_Res.FriendsReqCancel_Res = (UINT16)FriendReqCancelResult;
+	SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&FriendsReqCancel_Res);
+}
+
+void PacketManager::DeleteFriend(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
+
+	auto DelFriendPakcet = reinterpret_cast<DELETE_FRIEND_REQUEST*>(pPacket_);
+	auto DelFriendResult = mySQLManager->DeleteFriend(DelFriendPakcet->reqUserPKNum, DelFriendPakcet->resUserPKNum);
+
+	DELETE_FRIEND_RESPONSE DelFriend_Res;
+	DelFriend_Res.DelFriendRes = (UINT16)DelFriendResult;
+	SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&DelFriend_Res);
+}
+
+void PacketManager::MakeParty(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
+
+	auto MakePartyPakcet = reinterpret_cast<MAKE_PARTY_REQUEST*>(pPacket_);
+	auto MakePartyResult = mySQLManager->MakeParty(MakePartyPakcet->reqUserPKNum, MakePartyPakcet->resUserPKNum);
+	MAKE_PARTY_RESPONSE MakeParty_Res;
+
+	// 파티 생성 실패
+	if (MakePartyResult == -1 || MakePartyResult == -2) {
+		MakeParty_Res.partyNum = (UINT16)ERROR_CODE::PARTY_MAKE_FAIL;
+		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&MakeParty_Res);
+	}
+
+	// 파티 생성 후 그 파티 번호 불러오기 실패 (1.클라한테는 파티 생성 실패 메시지 보내고 INSERT한거 DELETE, 2. 일단 파티 생성 해놓고 다시 번호 요청하기)
+	// 이 케이스는 보류
+	/*else if (MakePartyResult == -2) {
+		MakeParty_Res.partyNum = (UINT16)ERROR_CODE::PARTYNUM_CHECK_FAIL;
+		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&MakeParty_Res);
+	}*/
+
+	else {
+		MakeParty_Res.partyNum = (UINT16)MakePartyResult;
+		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&MakeParty_Res);
+	}
+}
+
+
+
