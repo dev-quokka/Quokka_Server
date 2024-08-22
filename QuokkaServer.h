@@ -150,12 +150,6 @@ public:
 		return Client->SendMsg(dataSize_, pData);
 	}
 
-	bool SendMsgS(const UINT32 clientIndex_, const UINT32 dataSize_, std::vector<int> intBufs_)
-	{
-		auto Client = GetClientInfo(clientIndex_);
-		return Client->SendMsgS(dataSize_, intBufs_);
-	}
-
 	void DestroyThread()
 	{
 		WorkRun = false;
