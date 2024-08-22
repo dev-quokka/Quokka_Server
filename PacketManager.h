@@ -30,7 +30,6 @@ public:
 	void End() {}
 
 	std::function<void(UINT32, UINT32, char*)> SendPacketFunc;
-	std::function<void(UINT32, UINT32, std::vector<int>)> SendPacketSFunc;
 
 private:
 

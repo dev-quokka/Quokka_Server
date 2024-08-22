@@ -3,6 +3,7 @@
 #include <mysql.h>
 #include <string>
 #include "ErrorCode.h"
+#include "Party.h"
 #pragma comment (lib, "libmysql.lib") // mysql ¿¬µ¿
 
 class MySQLManager {
@@ -81,28 +82,27 @@ public:
 		return std::stoi(Row[0]);
 	}
 
-	std::vector<std::vector<std::string>> FindUserFriends(int userPKNum_) {
+	std::vector<FriendInfo> FindUserFriends(int userPKNum_) {
 
-		std::vector<std::vector<std::string>> Friends;
-		std::string query_s = "select u.id,u.user_level,u.user_id from friends_tb f LEFT JOIN user_tb u on f.user_pk2 = u.id where user_pk1 = '" + std::to_string(userPKNum_) + "'";
+		std::vector<FriendInfo> FriendsInfo;
+		std::string query_s = "select u.user_id,u.id,u.user_level,u.user_party_num from friends_tb f LEFT JOIN user_tb u on f.user_pk2 = u.user_id where user_pk1 = '" + std::to_string(userPKNum_) + "'";
 
 		const char* Query = &*query_s.begin();
 		MysqlResult = mysql_query(ConnPtr, Query);
 
 		if (MysqlResult == 0) {
 			Result = mysql_store_result(ConnPtr);
-			int cnt = 0;
 			while ((Row = mysql_fetch_row(Result)) != NULL) {
-				Friends[cnt++].emplace_back(Row[0]);
-				Friends[cnt++].emplace_back(Row[1]);
-				Friends[cnt++].emplace_back(Row[2]);
-			}
-			if (Row[0] == NULL) {
-				return Friends;
+				FriendInfo* friendInfo = new FriendInfo;
+				friendInfo->userPkNum = std::stoi(Row[0]);
+				friendInfo->id = (Row[1]);
+				friendInfo->partyNum = std::stoi(Row[2]);
+				friendInfo->userLevel = std::stoi(Row[3]);
+				FriendsInfo.emplace_back(friendInfo);
 			}
 			mysql_free_result(Result);
 		}
-		return Friends;
+		return FriendsInfo;
 	}
 
 	ERROR_CODE FriendRequest(int reqUserPK_, int resUserPK_) {

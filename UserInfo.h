@@ -153,41 +153,6 @@ public:
 		uSocket = INVALID_SOCKET;
 	}
 
-	bool SendMsgS(const UINT32 dataSize_, std::vector<std::vector<std::string>> stringBufs_)
-	{
-		// 데이터가 여러개 들어올때
-		std::vector<std::vector<std::string>> stringBufs =	stringBufs_;
-		std::vector<WSABUF> wsaBuf;
-
-		for (auto stringbuf : stringBufs_) {
-			WSABUF wsabuf;
-			for (int i = 0; i < stringbuf.size(); i++) {
-
-			}
-			wsabuf.buf = reinterpret_cast<char*>(stringbuf);
-			wsabuf.len = static_cast<LONG>(stringbuf);
-			wsaBuf.emplace_back(wsabuf);
-		}
-
-		auto sendOverlappedEx = new OverlappedEx;
-		ZeroMemory(sendOverlappedEx, sizeof(OverlappedEx));
-		sendOverlappedEx->m_wsaBuf.len = dataSize_;
-		sendOverlappedEx->m_wsaBuf.buf = new char[dataSize_];
-		sendOverlappedEx->m_wsaBufCnt = intBufs.size();
-		sendOverlappedEx->m_eOperation = IOOperation::SEND;
-
-		std::lock_guard<std::mutex> guard(SendLock);
-
-		SendDataqueue.push(sendOverlappedEx);
-
-		if (SendDataqueue.size() == 1)
-		{
-			SendIO();
-		}
-
-		return true;
-	}
-
 	bool SendMsg(const UINT32 dataSize_, char* pMsg_)
 	{
 		auto sendOverlappedEx = new OverlappedEx;
@@ -234,16 +199,16 @@ private:
 		auto sendOverlappedEx = SendDataqueue.front();
 
 		DWORD dwRecvNumBytes = 0;
-		int nRet = WSASend(uSocket,
+		int sCheck = WSASend(uSocket,
 			&(sendOverlappedEx->m_wsaBuf),
-			sendOverlappedEx->m_wsaBufCnt,
+			1,
 			&dwRecvNumBytes,
 			0,
 			(LPWSAOVERLAPPED)sendOverlappedEx,
 			NULL);
 
 		//socket_error이면 client socket이 끊어진걸로 처리한다.
-		if (nRet == SOCKET_ERROR && (WSAGetLastError() != ERROR_IO_PENDING))
+		if (sCheck == SOCKET_ERROR && (WSAGetLastError() != ERROR_IO_PENDING))
 		{
 			std::cout<< "[에러] WSASend()함수 실패 : " << WSAGetLastError() << std::endl;
 			return false;

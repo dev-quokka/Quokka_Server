@@ -221,9 +221,10 @@ void PacketManager::FindUserFriends(UINT32 clientIndex_, UINT16 packetSize_, cha
 	auto FindFriendsPacket = reinterpret_cast<FIND_FRIENDS_REQUEST*>(pPacket_);
 	auto UserPKNum = FindFriendsPacket->userPKNum;
 
-	std::vector<int> Friends = mySQLManager->FindUserFriends(UserPKNum);
+	std::vector<FriendInfo> FriendsInfo = mySQLManager->FindUserFriends(UserPKNum);
+	auto FindFriendsInfo = reinterpret_cast<char*>(&FriendsInfo);
 
-
+	SendPacketFunc(clientIndex_, sizeof(FindFriendsInfo), FindFriendsInfo);
 }
 
 void PacketManager::FindUserFriendsInfo(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
@@ -232,7 +233,7 @@ void PacketManager::FindUserFriendsInfo(UINT32 clientIndex_, UINT16 packetSize_,
 	auto UserPKNum = FindFriendsPacket->userPKNum;
 
 	std::vector<int> Friends = userManager->GetUserByIdx(clientIndex_)->GetUserFriendsPKNums();
-
+	
 
 }
 
