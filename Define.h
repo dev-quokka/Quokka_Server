@@ -19,10 +19,11 @@ struct OverlappedEx {
 };
 
 struct FriendInfo {
-	int userPkNum;
+	UINT32 userPkNum;
 	std::string id;
-	int userLevel;
-	int partyNum=0;
+	UINT8 userLevel;
+	UINT16 partyIdx=0;
+	INT8 Check = 0;
 };
 
 // 암호 256*101 - 256/3 + 소켓

@@ -19,12 +19,12 @@ public :
 		PakcetDataBuffer = new char[PACKET_DATA_BUFFER_SIZE];
 	}
 
-	void InsertUserFriends(std::vector<FriendInfo*> friendsInfos_){
+	/*void InsertUserFriends(std::vector<FriendInfo*> friendsInfos_){
 
 		for (auto friendInfo : friendsInfos_)
 			Friends[friendInfo->userPkNum] = friendInfo;
 		
-	}
+	}*/
 	
 	void Clear()
 	{
@@ -148,9 +148,9 @@ private:
 
 	char* PakcetDataBuffer = nullptr;
 
-	// 처음 접속하면 가져오는 친구정보랑 친구 요청 정보
-	std::unordered_map<int, FriendInfo*> Friends;
+	//// 처음 접속하면 가져오는 친구정보랑 친구 요청 정보
+	//std::unordered_map<int, FriendInfo*> Friends;
 
 	// 클라이언트에는 처음 정보 다 받고 저장 해두고 서버에서는 pk번호만 저장해놔서 나중에 그 아이에게 파티 따라가기등 바로 할 수 있게 설정하기
-	// 쓰레드 돌리면서 그 친구 접속 하면 업데이트 하는 쓰레드 만들어 줘야함
+
 };
