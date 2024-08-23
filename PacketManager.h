@@ -54,7 +54,8 @@ private:
 
 	std::thread ProcessThread;
 
-	std::mutex dpLock;
+	std::mutex packetLock;
+	std::mutex partyLock;
 
 	std::deque<UINT32> UserPacketIndex;
 	std::deque<PacketInfo> SystemPacketQueue;

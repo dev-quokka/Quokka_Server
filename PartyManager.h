@@ -1,7 +1,7 @@
 #pragma once
 #include "Party.h"
+#include <unordered_map>
 #include <vector>
-#include <queue> // 비어있는 룸 확인용 큐
 
 class PartyManager {
 public :
@@ -9,60 +9,55 @@ public :
 	PartyManager() = default;
 	~PartyManager() = default;
 
-	int getUsablePartySize() {
-		return ;
+	void Init(int maxPartyCnt_) {
+		MaxPartyCnt = maxPartyCnt_;
 	}
 
-	void init(int maxPartyCnt_) {
-
-		PartyIdx = PartyIdx;
-
-		for (int i = 0; i < maxPartyCnt_; i++) {
-			partyList[i] = new Party();
-			partyList[i]->init(i);
-			usableCheckQueue.push(i);
-		}
+	bool UsableEnterCheck(int partyIdx_) {
 
 	}
 
 	//파티 만들어 지는 경우 : 다른 아이가 파티 없는 아이에게 참가하기 했을때(인원만 안넘어있으면 응답 안해도됌) or 누군가를 초대해서 그 사람이 초대 요청을 받았을 때(응답 요청 확인했을때)
-	bool makeParty(UserInfo* organizer_, UserInfo* member_) {
+	bool MakeParty(int partyIdx_, std::vector<FriendInfo*> friendsInfo_) {
+		
 
-		std::lock_guard<std::mutex> guard(qcLock);
-		if (usableCheckQueue.empty()) {
+		if (MaxPartyCnt == 0 || MaxPartyCnt <= PartyCnt) {
 			return false;
 		}
-
-		int usableQ = usableCheckQueue.front();
-		usableCheckQueue.pop();
-
-		partyList[usableQ]->MakeParty(organizer_,member_);
-
-	}
-
-	bool addParty(UserInfo* user_, int partyIndx) {
-
-		std::lock_guard<std::mutex> guard(pmLock);
-		if (partyList[partyIndx]->addUser(user_)) {
-			return true;
-		}
 		
-		return false;
+		PartyList[partyIdx_] = friendsInfo_;
+		PartyCnt++;
+		return true;
+
 	}
 
-	void closeParty() {
+	bool JoinParty(int partyIdx_, std::vector<FriendInfo*> friendsInfo_) {
 
+		if (PartyList[partyIdx_].size() > 4) {
+			return false;
+		}
+		PartyList[partyIdx_].emplace_back(friendsInfo_);
+		return true;
+	}
+
+	bool LeaveParty(int partyIdx_, FriendInfo*) {
+		
+	};
+
+	UINT16 MakePartyCheck() {
+
+		if (MaxPartyCnt == 0 || MaxPartyCnt <= PartyCnt) {
+			return 0;
+		}
+
+		return PartyCnt;
 	}
 
 private :
-	std::vector<Party*> partyList;
 
-	std::queue<int> usableCheckQueue;
+	std::unordered_map<int, std::vector<FriendInfo*>> PartyList; // 파티번호, 파티원 수
 
-	std::mutex pmLock;
-	std::mutex qcLock;
-
-	int PartyCnt = 0;
-	int PartyIdx;
+	UINT16 PartyCnt = 1;
+	UINT16 MaxPartyCnt = 0;
 
 };

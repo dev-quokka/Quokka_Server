@@ -61,6 +61,6 @@ private:
 	
 	std::vector<User*> users;
 
-	std::unordered_map<int, int> currentUserMap; // 유저 아이디로 그 유저 구조체 알기 위한 idx 찾기 가능
+	std::unordered_map<int, int> currentUserMap; // 유저 아이디로 그 유저 구조체 알기 위한 idx 찾기 가능 <userPK, userIdx>
 
 };

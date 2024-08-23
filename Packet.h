@@ -1,6 +1,6 @@
 #pragma once
 #include <windows.h>
-
+#include "Define.h"
 struct PacketInfo
 {
 	UINT32 ClientIndex = 0;
@@ -13,7 +13,7 @@ struct PACKET_HEADER
 {
 	UINT16 PacketLength;
 	UINT16 PacketId;
-	UINT8 encryption; //압축여부 암호화여부 등 속성을 알아내는 값
+	UINT8 encryption=0; //압축여부 암호화여부 등 속성을 알아내는 값
 };
 
 const UINT32 PACKET_HEADER_LENGTH = sizeof(PACKET_HEADER);
@@ -50,6 +50,11 @@ struct FIND_FRIENDS_REQUEST : public PACKET_HEADER
 	UINT32 userPKNum;
 };
 
+struct FIND_FRIENDS_RESPONSE : public PACKET_HEADER
+{
+	char* FriendsInfo = nullptr;
+};
+
 struct FRIEND_REQUEST_REQUEST : public PACKET_HEADER
 {
 	UINT32 reqUserPKNum;
@@ -81,6 +86,14 @@ struct DELETE_FRIEND_RESPONSE :public PACKET_HEADER {
 	UINT16 DelFriendRes;
 };
 
+struct DELETE_FRIEND_RESPONSE_TO_RESPONSE_USER :public PACKET_HEADER {
+	UINT32 reqUserPKNum;
+};
+
+struct CONNECT_RESPONSE_TO_FRIENDS : public PACKET_HEADER {
+	UINT32 reqUserPKNum;
+};
+
 struct MAKE_PARTY_REQUEST : public PACKET_HEADER
 {
 	UINT32 reqUserPKNum;
@@ -89,12 +102,13 @@ struct MAKE_PARTY_REQUEST : public PACKET_HEADER
 
 struct MAKE_PARTY_RESPONSE : public PACKET_HEADER
 {
-	UINT16 partyNum;
+	UINT16 partyRes;
 };
 
 struct PARTY_ENTER_REQUEST : public PACKET_HEADER
 { 
-	UINT32 clientIdx;
+	UINT16 partyIdx;
+	UINT32 reqUserPKNum;
 };
 
 struct PARTY_ENTER_RESPONSE : public PACKET_HEADER
@@ -139,9 +153,17 @@ enum class  PACKET_ID : UINT16
 
 	FIND_USER_REQUEST = 241,
 	FIND_USER_RESPONSE = 242,
+	FIND_FRIENDS_REQUEST = 243,
+	FIND_FRIENDS_RESPONSE = 244,
 
+	CONNECT_RESPONSE_TO_FRIENDS = 250,
+	FRIEND_REQUEST_REQUEST = 251,
+	FRIEND_REQUEST_RESPONSE = 252,
+	FRIEND_REQUEST_CANCEL_REQUEST=253,
+	FRIEND_REQUEST_CANCEL_RESPONSE=254,
 
-	FRIEND_REQUEST = 251,
-	FRIEND_RESPONSE = 252,
-	FRIEND_DELETE_REQUEST = 253,
+	FRIEND_DELETE_REQUEST = 255,
+	FRIEND_DELETE_RESPONSE = 256,
+
+	DELETE_FRIEND_RESPONSE_TO_RESPONSE_USER = 256,
 };

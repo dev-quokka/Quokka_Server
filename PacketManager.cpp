@@ -7,21 +7,26 @@
 void PacketManager::Init(const UINT32 maxClient_)
 {
 	RecvFuntionDictionary = std::unordered_map<int, PROCESS_RECV_PACKET_FUNCTION>();
-
+	;
 	RecvFuntionDictionary[(int)PACKET_ID::SYS_USER_CONNECT] = &PacketManager::UserConnect;
 	RecvFuntionDictionary[(int)PACKET_ID::SYS_USER_DISCONNECT] = &PacketManager::UserDisConnect;
-
 	RecvFuntionDictionary[(int)PACKET_ID::LOGIN_REQUEST] = &PacketManager::Login;
 
+	// <친구>
+	RecvFuntionDictionary[(int)PACKET_ID::FIND_USER_REQUEST] = &PacketManager::FindUserById; // 친구 검색을 위한 유저 검색
+	RecvFuntionDictionary[(int)PACKET_ID::FIND_FRIENDS_REQUEST] = &PacketManager::FindUserFriendsInfo;
+	RecvFuntionDictionary[(int)PACKET_ID::FRIEND_REQUEST_REQUEST] = &PacketManager::FriendRequest;
+	RecvFuntionDictionary[(int)PACKET_ID::FRIEND_REQUEST_CANCEL_REQUEST] = &PacketManager::FriendRequestCancel;
+	RecvFuntionDictionary[(int)PACKET_ID::FRIEND_DELETE_REQUEST] = &PacketManager::DeleteFriend;
+
+	// <파티>
+	RecvFuntionDictionary[(int)PACKET_ID::MAKE_PARTY_REQUEST] = &PacketManager::MakeParty;
 	RecvFuntionDictionary[(int)PACKET_ID::PARTY_ENTER_REQUEST] = &PacketManager::EnterParty;
 	RecvFuntionDictionary[(int)PACKET_ID::PARTY_LEAVE_REQUEST] = &PacketManager::LeaveParty;
 	RecvFuntionDictionary[(int)PACKET_ID::PARTY_CHAT_REQUEST] = &PacketManager::PartyChatMessage;
 
 	RecvFuntionDictionary[(int)PACKET_ID::WHISPER_CHAT_REQUEST] = &PacketManager::Whisper;
 
-	RecvFuntionDictionary[(int)PACKET_ID::FIND_USER_REQUEST] = &PacketManager::FindUserById;
-	
-	RecvFuntionDictionary[(int)PACKET_ID::FRIEND_REQUEST] = &PacketManager::FriendRequest;
 }
 
 bool PacketManager::Run()
@@ -66,7 +71,7 @@ PacketInfo PacketManager::DequePacketData()
 	UINT32 userIndex = 0;
 
 	{
-		std::lock_guard<std::mutex> guard(dpLock);
+		std::lock_guard<std::mutex> guard(packetLock);
 		if (UserPacketIndex.empty())
 		{
 			return PacketInfo();
@@ -85,13 +90,13 @@ PacketInfo PacketManager::DequePacketData()
 PacketInfo PacketManager::DequeSystemPacketData()
 {
 
-	std::lock_guard<std::mutex> guard(dpLock);
+	std::lock_guard<std::mutex> guard(packetLock);
 	if (SystemPacketQueue.empty())
 	{
 		return PacketInfo();
 	}
 
-	auto packetData = SystemPacketQueue.front();
+	PacketInfo packetData = SystemPacketQueue.front();
 	SystemPacketQueue.pop_front();
 
 	return packetData;
@@ -143,7 +148,7 @@ void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket
 	auto UserId = LoginReqPacket->UserID;
 	auto UserPassword = LoginReqPacket->UserPW;
 
-	int LoginDBResult = mySQLManager->MysqlLoginCheck(UserId,UserPassword);
+	auto LoginDBResult = mySQLManager->MysqlLoginCheck(UserId,UserPassword);
 
 	LOGIN_RESPONSE_PACKET LoginResPacket;
 	LoginResPacket.PacketId = (UINT16)PACKET_ID::LOGIN_RESPONSE;
@@ -160,35 +165,56 @@ void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket
 
 
 	// 아이디가 다를때
-	if (LoginDBResult == -1) {
+	if (LoginDBResult->Check == -1) {
 		LoginResPacket.LoginResult = (UINT16)ERROR_CODE::LOGIN_USER_INVALID_ID;
 		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
 		return;
 	}
 
 	// 비밀번호가 다를때
-	else if (LoginDBResult ==  -2) {
+	else if (LoginDBResult->Check ==  -2) {
 		LoginResPacket.LoginResult = (UINT16)ERROR_CODE::LOGIN_USER_INVALID_PW;
 		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
 		return;
 	}
 
 	else {
-		userManager->AddUser(clientIndex_, LoginDBResult, UserId);
-
 		// 이미 유저가 로그인 중 일때
-		if (userManager->FindUserByPK(LoginDBResult)!=-1) {
+		if (userManager->FindUserByPK(LoginDBResult->userPkNum)!=-1) {
 			//접속중인 유저여서 실패를 반환.
 			LoginResPacket.LoginResult = (UINT16)ERROR_CODE::LOGIN_USER_ALREADY;
 			SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
 			return;
 		}
 
+		userManager->AddUser(clientIndex_, LoginDBResult->userPkNum, UserId);
+
 		LoginResPacket.LoginResult = (UINT16)ERROR_CODE::NONE;
 		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
 		std::cout << "유저 " << UserId << " 접속" << std::endl;
 
-		// 그 유저 친구목록 뿌려주고 친구인 아이들에게 접속했다는 메시지 보내주기
+		// 그 유저 친구목록 뿌려주고
+		std::vector<FriendInfo*> FriendsInfo = mySQLManager->FindUserFriendsInfo(LoginDBResult->userPkNum);
+		auto FindFriendsInfo = reinterpret_cast<char*>(&FriendsInfo);
+		FIND_FRIENDS_RESPONSE FindFriendsRes;
+		FindFriendsRes.PacketId = (UINT16)PACKET_ID::FIND_FRIENDS_RESPONSE;
+		FindFriendsRes.PacketLength = sizeof(FIND_FRIENDS_RESPONSE);
+		FindFriendsRes.FriendsInfo = FindFriendsInfo;
+		SendPacketFunc(clientIndex_, sizeof(FIND_FRIENDS_RESPONSE), (char*)&FindFriendsRes);
+
+		//친구인 아이들에게 접속했다는 메시지 보내주기
+		if (LoginDBResult->Check == 1) {
+			for (int i = 0; i < FriendsInfo.size(); i++) {
+				if (userManager->FindUserByPK(FriendsInfo[i]->userPkNum) == -1) continue;
+				else {
+					CONNECT_RESPONSE_TO_FRIENDS ConnResToFriend;
+					ConnResToFriend.PacketId = (UINT16)PACKET_ID::CONNECT_RESPONSE_TO_FRIENDS;
+					ConnResToFriend.PacketLength = sizeof(CONNECT_RESPONSE_TO_FRIENDS);
+					ConnResToFriend.reqUserPKNum = LoginDBResult->userPkNum;
+					SendPacketFunc(userManager->FindUserByPK(FriendsInfo[i]->userPkNum), sizeof(CONNECT_RESPONSE_TO_FRIENDS), (char*)&ConnResToFriend);
+				}
+			}
+		}
 		return;
 	}
 }
@@ -201,7 +227,6 @@ void PacketManager::FindUserById(UINT32 clientIndex_, UINT16 packetSize_, char* 
 	UINT32 LoginResult = mySQLManager->FindUserById(UserId);
 
 	FIND_USER_RESPONSE FindUserRes;
-
 	FindUserRes.PacketId = (UINT16)PACKET_ID::FIND_USER_RESPONSE;
 	FindUserRes.PacketLength = sizeof(FIND_USER_RESPONSE);
 
@@ -216,24 +241,30 @@ void PacketManager::FindUserById(UINT32 clientIndex_, UINT16 packetSize_, char* 
 	SendPacketFunc(clientIndex_, sizeof(FIND_USER_RESPONSE), (char*)&FindUserRes);
 }
 
-void PacketManager::FindUserFriends(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
-
-	auto FindFriendsPacket = reinterpret_cast<FIND_FRIENDS_REQUEST*>(pPacket_);
-	auto UserPKNum = FindFriendsPacket->userPKNum;
-
-	std::vector<FriendInfo> FriendsInfo = mySQLManager->FindUserFriends(UserPKNum);
-	auto FindFriendsInfo = reinterpret_cast<char*>(&FriendsInfo);
-
-	SendPacketFunc(clientIndex_, sizeof(FindFriendsInfo), FindFriendsInfo);
-}
+//void PacketManager::FindUserFriends(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
+//
+//	auto FindFriendsPacket = reinterpret_cast<FIND_FRIENDS_REQUEST*>(pPacket_);
+//	auto UserPKNum = FindFriendsPacket->userPKNum;
+//
+//	std::vector<FriendInfo> FriendsInfo = mySQLManager->FindUserFriendsInfo(UserPKNum);
+//	auto FindFriendsInfo = reinterpret_cast<char*>(&FriendsInfo);
+//
+//	SendPacketFunc(clientIndex_, sizeof(FindFriendsInfo), FindFriendsInfo);
+//}
 
 void PacketManager::FindUserFriendsInfo(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
 
 	auto FindFriendsPacket = reinterpret_cast<FIND_FRIENDS_REQUEST*>(pPacket_);
 	auto UserPKNum = FindFriendsPacket->userPKNum;
 
-	std::vector<int> Friends = userManager->GetUserByIdx(clientIndex_)->GetUserFriendsPKNums();
-	
+	std::vector<FriendInfo*> FriendsInfo = mySQLManager->FindUserFriendsInfo(UserPKNum);
+	auto FindFriendsInfo = reinterpret_cast<char*>(&FriendsInfo);
+
+	FIND_FRIENDS_RESPONSE FindFriendsRes;
+	FindFriendsRes.PacketId = (UINT16)PACKET_ID::FIND_FRIENDS_RESPONSE;
+	FindFriendsRes.PacketLength = sizeof(FIND_FRIENDS_RESPONSE);
+	FindFriendsRes.FriendsInfo = FindFriendsInfo;
+	SendPacketFunc(clientIndex_, sizeof(FindFriendsInfo), (char*)&FindFriendsRes);
 
 }
 
@@ -243,8 +274,11 @@ void PacketManager::FriendRequest(UINT32 clientIndex_, UINT16 packetSize_, char*
 	auto FriendReqResult = mySQLManager->FriendRequest(FriendReqPacket->reqUserPKNum, FriendReqPacket->resUserPKNum);
 
 	FRIEND_REQUEST_RESPONSE FriendsReq_Res;
+	FriendsReq_Res.PacketId = (UINT16)PACKET_ID::FRIEND_REQUEST_RESPONSE;
+	FriendsReq_Res.PacketLength = sizeof(FRIEND_REQUEST_RESPONSE);
 	FriendsReq_Res.FriendsReq_Res = (UINT16)FriendReqResult;
-	SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&FriendsReq_Res);
+
+	SendPacketFunc(clientIndex_, sizeof(FRIEND_REQUEST_RESPONSE), (char*)&FriendsReq_Res);
 }
 
 void PacketManager::FriendRequestCancel(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
@@ -253,8 +287,10 @@ void PacketManager::FriendRequestCancel(UINT32 clientIndex_, UINT16 packetSize_,
 	auto FriendReqCancelResult = mySQLManager->FriendRequestCancel(FriendReqCancelPacket->reqUserPKNum, FriendReqCancelPacket->resUserPKNum);
 
 	FRIEND_REQUEST_CANCEL_RESPONSE FriendsReqCancel_Res;
+	FriendsReqCancel_Res.PacketId = (UINT16)PACKET_ID::FRIEND_REQUEST_CANCEL_RESPONSE;
+	FriendsReqCancel_Res.PacketLength = sizeof(FRIEND_REQUEST_CANCEL_RESPONSE);
 	FriendsReqCancel_Res.FriendsReqCancel_Res = (UINT16)FriendReqCancelResult;
-	SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&FriendsReqCancel_Res);
+	SendPacketFunc(clientIndex_, sizeof(FRIEND_REQUEST_CANCEL_RESPONSE), (char*)&FriendsReqCancel_Res);
 }
 
 void PacketManager::DeleteFriend(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
@@ -263,33 +299,66 @@ void PacketManager::DeleteFriend(UINT32 clientIndex_, UINT16 packetSize_, char* 
 	auto DelFriendResult = mySQLManager->DeleteFriend(DelFriendPakcet->reqUserPKNum, DelFriendPakcet->resUserPKNum);
 
 	DELETE_FRIEND_RESPONSE DelFriend_Res;
+	DelFriend_Res.PacketId = (UINT16)PACKET_ID::FRIEND_DELETE_RESPONSE;
+	DelFriend_Res.PacketLength = sizeof(DELETE_FRIEND_RESPONSE);
 	DelFriend_Res.DelFriendRes = (UINT16)DelFriendResult;
-	SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&DelFriend_Res);
+
+	if (DelFriendResult==ERROR_CODE::FRIEND_DELETE_FAIL) {
+		SendPacketFunc(clientIndex_, sizeof(DELETE_FRIEND_RESPONSE), (char*)&DelFriend_Res);
+	}
+	else if(DelFriendResult==ERROR_CODE::NONE){
+		SendPacketFunc(clientIndex_, sizeof(DELETE_FRIEND_RESPONSE), (char*)&DelFriend_Res);
+		auto DelResFriend = DelFriendPakcet->resUserPKNum;
+
+		//친구 삭제 당한 유저한테도 삭제 메시지 보내기
+		if (userManager->FindUserByPK(DelResFriend) != -1) {
+			DELETE_FRIEND_RESPONSE_TO_RESPONSE_USER DelToResFriend;
+			DelToResFriend.reqUserPKNum = DelFriendPakcet->reqUserPKNum;
+			SendPacketFunc(userManager->FindUserByPK(DelResFriend), sizeof(DELETE_FRIEND_RESPONSE_TO_RESPONSE_USER), (char*)&DelToResFriend);
+		}
+	}
+}
+
+void PacketManager::EnterParty(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
+
+	std::lock_guard<std::mutex> pguard(partyLock);
+	UINT16 makePartyCheck = partyManager->MakePartyCheck();
+	MAKE_PARTY_RESPONSE MakeParty_Res;
+
+	if (makePartyCheck == 0) {
+		MakeParty_Res.partyRes = (UINT16)ERROR_CODE::PARTY_FULL;
+	}
+
 }
 
 void PacketManager::MakeParty(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
 
-	auto MakePartyPakcet = reinterpret_cast<MAKE_PARTY_REQUEST*>(pPacket_);
-	auto MakePartyResult = mySQLManager->MakeParty(MakePartyPakcet->reqUserPKNum, MakePartyPakcet->resUserPKNum);
-	MAKE_PARTY_RESPONSE MakeParty_Res;
+	std::lock_guard<std::mutex> pguard(partyLock);
+	UINT16 makePartyCheck = partyManager->MakePartyCheck();
 
-	// 파티 생성 실패
-	if (MakePartyResult == -1 || MakePartyResult == -2) {
-		MakeParty_Res.partyNum = (UINT16)ERROR_CODE::PARTY_MAKE_FAIL;
+	if (makePartyCheck == 0) {
+
+		MAKE_PARTY_RESPONSE MakeParty_Res;
+		MakeParty_Res.PacketId = (UINT16)PACKET_ID::MAKE_PARTY_REQUEST;
+		MakeParty_Res.PacketLength = sizeof(MAKE_PARTY_RESPONSE);
+		MakeParty_Res.partyRes = (UINT16)ERROR_CODE::PARTY_FULL;
+
 		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&MakeParty_Res);
 	}
-
-	// 파티 생성 후 그 파티 번호 불러오기 실패 (1.클라한테는 파티 생성 실패 메시지 보내고 INSERT한거 DELETE, 2. 일단 파티 생성 해놓고 다시 번호 요청하기)
-	// 이 케이스는 보류
-	/*else if (MakePartyResult == -2) {
-		MakeParty_Res.partyNum = (UINT16)ERROR_CODE::PARTYNUM_CHECK_FAIL;
-		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&MakeParty_Res);
-	}*/
 
 	else {
-		MakeParty_Res.partyNum = (UINT16)MakePartyResult;
+
+		auto MakePartyPakcet = reinterpret_cast<MAKE_PARTY_REQUEST*>(pPacket_);
+		auto MakePartyResult = mySQLManager->MakeParty(MakePartyPakcet->reqUserPKNum, MakePartyPakcet->resUserPKNum, makePartyCheck);
+
+		MAKE_PARTY_RESPONSE MakeParty_Res;
+		MakeParty_Res.PacketId = (UINT16)PACKET_ID::MAKE_PARTY_REQUEST;
+		MakeParty_Res.PacketLength = sizeof(MAKE_PARTY_RESPONSE);
+		MakeParty_Res.partyRes = (UINT16)MakePartyResult;
+
 		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&MakeParty_Res);
 	}
+
 }
 
 

@@ -3,7 +3,6 @@
 #include <mysql.h>
 #include <string>
 #include "ErrorCode.h"
-#include "Party.h"
 #pragma comment (lib, "libmysql.lib") // mysql 연동
 
 class MySQLManager {
@@ -29,12 +28,12 @@ public:
 		mysql_close(ConnPtr);
 	}
 
-	INT16  MysqlLoginCheck(std::string user_id, std::string userPassword) {
+	FriendInfo* MysqlLoginCheck(std::string user_id, std::string userPassword) {
 
 		std::string temp_user_pk;
 		std::string temp_user_id;
 		std::string temp_password;
-		std::string query_s = "SELECT id,user_id,password FROM user WHERE user_id = '" + user_id + "'";
+		std::string query_s = "SELECT user_id,id,password FROM user_tb WHERE user_id = '" + user_id + "'";
 		
 		const char* Query = &*query_s.begin();
 		
@@ -50,20 +49,43 @@ public:
 			mysql_free_result(Result);
 		}
 
+		FriendInfo* userInfo = new FriendInfo;
+
 		if (user_id != temp_user_id) {
-			return -1;
+			userInfo->Check = -1;
+			return userInfo;
 		}
 
 		else if (userPassword != temp_password) {
-			return -2;
+			userInfo->Check = -2;
+			return userInfo;
 		}
 
-		else return std::stoi(Row[0]);
+		else {
+			query_s = "SELECT user_id,id,user_level,user_party_num,friends_request FROM user_tb WHERE user_id = '" + user_id + "'";
+
+			Query = &*query_s.begin();
+
+			MysqlResult = mysql_query(ConnPtr, Query);
+
+			if (MysqlResult == 0) {
+				Result = mysql_store_result(ConnPtr);
+				while ((Row = mysql_fetch_row(Result)) != NULL) {
+					userInfo->userPkNum = (UINT32)std::stoi(Row[0]);
+					userInfo->id =(Row[1]);
+					userInfo->userLevel= (UINT8)std::stoi(Row[2]);
+					userInfo->partyIdx = (UINT16)std::stoi(Row[3]);
+					userInfo->Check = (INT8)std::stoi(Row[4]);
+				}
+				mysql_free_result(Result);
+			}
+			return userInfo;
+		}
 	}
 
 	UINT32  FindUserById(std::string userId_) {
 		std::string temp_user_id;
-		std::string query_s = "SELECT id,user_id,user_level user_tb  WHERE user_id = '" + userId_ + "'";
+		std::string query_s = "SELECT user_id FROM user_tb  WHERE id = '" + userId_ + "'";
 
 		const char* Query = &*query_s.begin();
 
@@ -82,9 +104,9 @@ public:
 		return std::stoi(Row[0]);
 	}
 
-	std::vector<FriendInfo> FindUserFriends(int userPKNum_) {
+	std::vector<FriendInfo*> FindUserFriendsInfo(UINT32 userPKNum_) {
 
-		std::vector<FriendInfo> FriendsInfo;
+		std::vector<FriendInfo*> FriendsInfo;
 		std::string query_s = "select u.user_id,u.id,u.user_level,u.user_party_num from friends_tb f LEFT JOIN user_tb u on f.user_pk2 = u.user_id where user_pk1 = '" + std::to_string(userPKNum_) + "'";
 
 		const char* Query = &*query_s.begin();
@@ -96,7 +118,7 @@ public:
 				FriendInfo* friendInfo = new FriendInfo;
 				friendInfo->userPkNum = std::stoi(Row[0]);
 				friendInfo->id = (Row[1]);
-				friendInfo->partyNum = std::stoi(Row[2]);
+				friendInfo->partyIdx = std::stoi(Row[2]);
 				friendInfo->userLevel = std::stoi(Row[3]);
 				FriendsInfo.emplace_back(friendInfo);
 			}
@@ -105,7 +127,7 @@ public:
 		return FriendsInfo;
 	}
 
-	ERROR_CODE FriendRequest(int reqUserPK_, int resUserPK_) {
+	ERROR_CODE FriendRequest(UINT32 reqUserPK_, UINT32 resUserPK_) {
 
 		// 그 사람에게 요청 이미 있는지 체크
 		std::string query_s = "select friends_request_id FROM friends_request_tb where user_pk1="+ std::to_string(reqUserPK_)+"AND user_pk2 = "+ std::to_string(resUserPK_);
@@ -141,7 +163,7 @@ public:
 
 	}
 
-	ERROR_CODE FriendRequestCancel(int reqUserPK_, int resUserPK_) {
+	ERROR_CODE FriendRequestCancel(UINT32 reqUserPK_, UINT32 resUserPK_) {
 
 		std::string query_s = "delete FROM friends_request_tb WHERE user_pk1 = " + std::to_string(reqUserPK_) + "AND user_pk2 = " + std::to_string(resUserPK_);
 		
@@ -169,46 +191,31 @@ public:
 		else return ERROR_CODE::NONE;
 	}
 
-	INT16 MakeParty(int reqUserPK_, int resUserPK_) {
+	ERROR_CODE MakeParty(UINT32 reqUserPK_, UINT32 resUserPK_, UINT16 partyIdx_) {
 
-		std::string query_s = "INSERT INTO party_tb VALUES(NULL," + std::to_string(resUserPK_) +","+ std::to_string(resUserPK_) + "," + std::to_string(reqUserPK_) + ",null,null)";
+		std::string query_s = "INSERT INTO party_tb VALUES(NULL," + std::to_string(resUserPK_) +","+ std::to_string(resUserPK_) + "," + std::to_string(reqUserPK_) + ",null,null,"+ std::to_string(partyIdx_) + ")";
 
 		const char* Query = &*query_s.begin();
 		MysqlResult = mysql_query(ConnPtr, Query);
 
-		if (MysqlResult != 0) {
-			return -1;
-		}
+		if (MysqlResult != 0) return ERROR_CODE::PARTY_MAKE_FAIL;
 
-		else {
-			std::string query_s = "SELECT party_id FROM party_tb where party_organizer = " + std::to_string(resUserPK_);
-
-			const char* Query = &*query_s.begin();
-			MysqlResult = mysql_query(ConnPtr, Query);
-
-			if (MysqlResult != 0) {
-				Result = mysql_store_result(ConnPtr);
-				int cnt = std::stoi(mysql_fetch_row(Result)[0]);
-				mysql_free_result(Result);
-				return cnt;
-			}
-			else return -2;
-		}
+		else return ERROR_CODE::NONE;
 	}
 
-	ERROR_CODE ChangePartyOrganizer(int reqUserPK_,int partyNum) {
+	ERROR_CODE ChangePartyOrganizer(UINT32 reqUserPK_, UINT32 partyNum) {
 
 	}
 
-	ERROR_CODE EnterParty(int reqUserPK_, int partyNum) {
+	ERROR_CODE EnterParty(UINT32 reqUserPK_, UINT32 partyNum) {
 
 	}
 
-	ERROR_CODE OutParty(int reqUserPK_) {
+	ERROR_CODE OutParty(UINT32 reqUserPK_) {
 
 	}
 
-	ERROR_CODE ExpelUser(int reqUserPK_, int partyNum) {
+	ERROR_CODE ExpelUser(UINT32 reqUserPK_, UINT32 partyNum) {
 
 	}
 	

@@ -53,11 +53,6 @@ public:
 				SendMsg(clientIndex_, packetSize, pSendPacket);
 			};
 
-		auto sendPacketSFunc = [&](UINT32 clientIndex_, UINT16 packetSize, std::vector<int> intBufs_)
-			{
-				SendMsgS(clientIndex_, packetSize, intBufs_);
-			};
-
 		m_pPacketManager = std::make_unique<PacketManager>();
 		m_pPacketManager->SendPacketFunc = sendPacketFunc;
 		m_pPacketManager->Init(maxClient);
