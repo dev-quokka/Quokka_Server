@@ -1,8 +1,8 @@
 #pragma once
+
 #include <iostream>
 
 #include "Define.h"
-
 
 class UserInfo {
 

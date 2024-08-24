@@ -132,7 +132,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="refer.cpp" />
     <ClCompile Include="PacketManager.cpp" />
   </ItemGroup>
   <ItemGroup>

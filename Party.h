@@ -1,20 +1,13 @@
 #pragma once
 
-#include "UserInfo.h"
+#include "UserManager.h"
 #include <vector>
 #include <mutex>
 
 // 접속해서 룸 만들어지자마자 채팅 쓰레드 돌아감 (패킷 계속 수신받을 수 있게 만들기)
 class Party {
 public: 
-
-	enum class PartyProperty {
-		NONE = 0,
-		SOLO = 1,
-		DUO = 2,
-		SQUARD = 4
-	};
-
+	
 	void init(int partyIdx_) {
 		PartyIdx = partyIdx_;
 	}
@@ -23,18 +16,12 @@ public:
 		return Property;
 	}
 
-	void MakeParty(UserInfo* organizer_, UserInfo* member_) {
-		Organizer = organizer_->getUserIdx();
-		party.emplace_back(organizer_);
-		party.emplace_back(member_);
-	}
-
-	void closeParty() {
+	void CloseParty() {
 
 	}
 
 	// 유저 추방
-	void expelUser(int Organizer_) {
+	void ExpelUser(int Organizer_) {
 
 	}
 
@@ -42,34 +29,34 @@ public:
 
 	}
 
-	bool addUser(UserInfo* user_) {
+	void AddUser(int user_) {
 
 		std::lock_guard<std::mutex> guard(psLock);
-		if (getPartySize() < 4) {
-			party.emplace_back(user_);
-			return true;
-		}
-
-		return false;
+		return;
 
 	}
 
-	int getPartySize() {
-		return party.size(); 
+	UINT16 GetPartySize() {
+		return partyUsers.size();
 	}
 
 	// 파티장 넘기기 (파티장만 설정 가능하게)
-	bool setOrganizer(UserInfo* user_) {
-		Organizer = user_->getUserIdx();
+	bool SetOrganizer(UINT32 reqUserPKNum_) {
+		Organizer = reqUserPKNum_;
+	}
+
+	// 파티속성 변경 (파티장만 설정 가능하게)
+	void SetPartyProperty(PartyProperty property_) {
+		Property = property_;
 	}
 
 private:
 
-	PartyProperty Property = PartyProperty::NONE;
-	int Organizer;
-	int PartyIdx;
+	PartyProperty Property = PartyProperty::DUO;
+	UINT32 Organizer;
+	UINT16 PartyIdx;
 
 	std::mutex psLock;
 
-	std::vector<User*> party;
+	std::vector<int> partyUsers;
 };

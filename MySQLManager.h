@@ -177,7 +177,7 @@ public:
 		else return ERROR_CODE::NONE;
 	}
 
-	ERROR_CODE DeleteFriend(int reqUserPK_, int resUserPK_) {
+	ERROR_CODE DeleteFriend(UINT32 reqUserPK_, UINT32 resUserPK_) {
 
 		std::string query_s = "delete FROM friends_tb WHERE user_pk1 = " + std::to_string(reqUserPK_) + "AND user_pk2 = " + std::to_string(resUserPK_);
 
@@ -191,7 +191,7 @@ public:
 		else return ERROR_CODE::NONE;
 	}
 
-	ERROR_CODE MakeParty(UINT32 reqUserPK_, UINT32 resUserPK_, UINT16 partyIdx_) {
+	ERROR_CODE MakeParty(UINT16 partyIdx_,UINT32 reqUserPK_, UINT32 resUserPK_) {
 
 		std::string query_s = "INSERT INTO party_tb VALUES(NULL," + std::to_string(resUserPK_) +","+ std::to_string(resUserPK_) + "," + std::to_string(reqUserPK_) + ",null,null,"+ std::to_string(partyIdx_) + ")";
 
@@ -203,11 +203,18 @@ public:
 		else return ERROR_CODE::NONE;
 	}
 
-	ERROR_CODE ChangePartyOrganizer(UINT32 reqUserPK_, UINT32 partyNum) {
+	ERROR_CODE EnterParty(UINT32 reqUserPK_, UINT32 partyIdx_, UINT8 InsertNum_) {
+		std::string query_s = "UPDATE party_tb SET user"+ std::to_string(InsertNum_) +" = " +std::to_string(reqUserPK_) + " where party_idx = "+ std::to_string(partyIdx_);
+		
+		const char* Query = &*query_s.begin();
+		MysqlResult = mysql_query(ConnPtr, Query);
 
+		if (MysqlResult != 0) return ERROR_CODE::PARTY_ENTER_FAIL;
+
+		else return ERROR_CODE::NONE;
 	}
 
-	ERROR_CODE EnterParty(UINT32 reqUserPK_, UINT32 partyNum) {
+	ERROR_CODE ChangePartyOrganizer(UINT32 reqUserPK_, UINT32 partyNum) {
 
 	}
 

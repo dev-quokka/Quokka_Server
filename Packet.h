@@ -1,6 +1,8 @@
 #pragma once
+
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include "Define.h"
+
 struct PacketInfo
 {
 	UINT32 ClientIndex = 0;
@@ -113,7 +115,7 @@ struct PARTY_ENTER_REQUEST : public PACKET_HEADER
 
 struct PARTY_ENTER_RESPONSE : public PACKET_HEADER
 {
-
+	UINT16 partyRes;
 };
 
 enum class  PACKET_ID : UINT16
