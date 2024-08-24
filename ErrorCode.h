@@ -1,5 +1,13 @@
 #pragma once
 
+struct FriendInfo {
+	UINT32 userPkNum;
+	std::string id;
+	UINT8 userLevel;
+	UINT16 partyIdx = 0;
+	INT8 Check = 0; // 내가 검색할 땐 로그인 요청 확인, 친구 검색시에는 로그인 상태 확인
+};
+
 enum class ERROR_CODE : UINT16
 {
 	NONE = 0,
@@ -21,6 +29,7 @@ enum class ERROR_CODE : UINT16
 	PARTY_MAKE_FAIL = 71,
 	PARTYNUM_CHECK_FAIL = 72,
 	PARTY_FULL = 73,
+	PARTY_ENTER_FAIL = 74,
 	// <friends>
 
 	// <PARTY>

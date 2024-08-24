@@ -2,16 +2,26 @@
 
 #include "Packet.h"
 #include <unordered_map>
+
+enum class USER_STATE
+{
+	NONE = 0,
+	LOGIN = 1,
+	PARYTY = 2,
+	PLAY = 3
+};
+
+enum class PartyProperty : UINT8 {
+	SOLO = 1,
+	DUO = 2,
+	SQUARD = 4
+};
+
 class User {
+
 	const UINT32 PACKET_DATA_BUFFER_SIZE = 8096;
+
 public :
-	enum class USER_STATE
-	{
-		NONE = 0,
-		LOGIN = 1,
-		PARYTY = 2,
-		PLAY = 3
-	};
 
 	void Init(const INT32 index_)
 	{
@@ -37,6 +47,10 @@ public :
 		PakcetDataBufferRPos = 0;
 	}
 
+	void SetUserPartyProperty(PartyProperty partyProperty_) {
+		uPartyProperty = partyProperty_;
+	}
+
 	int SetLogin(char* userID_,int userPKNum_)
 	{
 		CurDomainState = USER_STATE::LOGIN;
@@ -44,18 +58,6 @@ public :
 		UserPkNum = userPKNum_;
 		return 0;
 	}
-
-
-	// 나한테 파티 따라오기 할때 처리 함수 (yes or no)
-	bool FollowRequest(){
-
-
-		return PartyRequest;
-	}
-
-	// 초대 요청하는 함수
-	
-
 
 	// 따라오기 수락을 누르면 처리되는 함수
 	bool PartyRequest(int clientIdx_) {
@@ -65,6 +67,10 @@ public :
 	// 따라오기 수락을 누르면 처리되는 함수
 	bool PartyFollow(int clientIdx_) {
 		
+	}
+
+	PartyProperty GetUserPartyProperty() {
+		return uPartyProperty;
 	}
 
 	UINT16 GetUserPKNum() {
@@ -136,6 +142,7 @@ private:
 
 	UINT8 UserIdx;
 	UINT8 PartyIdx = -1;
+	PartyProperty uPartyProperty = PartyProperty::SOLO;
 	UINT16 UserLevel = 1;
 	UINT16 UserPkNum;
 

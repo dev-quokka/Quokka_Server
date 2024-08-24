@@ -129,12 +129,37 @@ void PacketManager::ProcessPacket()
 	}
 }
 
+void PacketManager::EnqueuePacketData(const UINT32 clientIndex_)
+{
+	std::lock_guard<std::mutex> guard(packetLock);
+	UserPacketIndex.push_back(clientIndex_);
+}
+
+void PacketManager::PushSystemPacket(PacketInfo packet_)
+{
+	std::lock_guard<std::mutex> guard(packetLock);
+	SystemPacketQueue.push_back(packet_);
+}
+
 void PacketManager::ReceivePacketData(const UINT32 clientIndex_, const UINT32 size_, char* pData_) {
 	auto pUser = userManager->GetUserByIdx(clientIndex_);
 	pUser->SetPacketData(size_, pData_);
 
 	EnqueuePacketData(clientIndex_);
 };
+
+void PacketManager::UserConnect(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_)
+{
+	printf("[ProcessUserConnect] clientIndex: %d\n", clientIndex_);
+	auto User = userManager->GetUserByIdx(clientIndex_);
+	User->Clear();
+}
+
+void PacketManager::UserDisConnect(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_)
+{
+	printf("[ProcessUserDisConnect] clientIndex: %d\n", clientIndex_);
+	ClearConnectionInfo(clientIndex_);
+}
 
 void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
 
@@ -195,17 +220,26 @@ void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket
 
 		// 그 유저 친구목록 뿌려주고
 		std::vector<FriendInfo*> FriendsInfo = mySQLManager->FindUserFriendsInfo(LoginDBResult->userPkNum);
+
+		// 로그인 한 클라이언트 패킷에서 -1이면 로그아웃상태 1이면 로그인 상태
+		for (int i = 0; i < FriendsInfo.size(); i++) {
+			if (userManager->FindUserByPK(FriendsInfo[i]->userPkNum) == -1) {
+				FriendsInfo[i]->Check = -1;
+			}
+		}
 		auto FindFriendsInfo = reinterpret_cast<char*>(&FriendsInfo);
 		FIND_FRIENDS_RESPONSE FindFriendsRes;
 		FindFriendsRes.PacketId = (UINT16)PACKET_ID::FIND_FRIENDS_RESPONSE;
 		FindFriendsRes.PacketLength = sizeof(FIND_FRIENDS_RESPONSE);
 		FindFriendsRes.FriendsInfo = FindFriendsInfo;
-		SendPacketFunc(clientIndex_, sizeof(FIND_FRIENDS_RESPONSE), (char*)&FindFriendsRes);
+		SendPacketFunc(clientIndex_, sizeof(FindFriendsRes), (char*)&FindFriendsRes);
 
 		//친구인 아이들에게 접속했다는 메시지 보내주기
 		if (LoginDBResult->Check == 1) {
 			for (int i = 0; i < FriendsInfo.size(); i++) {
+
 				if (userManager->FindUserByPK(FriendsInfo[i]->userPkNum) == -1) continue;
+
 				else {
 					CONNECT_RESPONSE_TO_FRIENDS ConnResToFriend;
 					ConnResToFriend.PacketId = (UINT16)PACKET_ID::CONNECT_RESPONSE_TO_FRIENDS;
@@ -313,6 +347,8 @@ void PacketManager::DeleteFriend(UINT32 clientIndex_, UINT16 packetSize_, char* 
 		//친구 삭제 당한 유저한테도 삭제 메시지 보내기
 		if (userManager->FindUserByPK(DelResFriend) != -1) {
 			DELETE_FRIEND_RESPONSE_TO_RESPONSE_USER DelToResFriend;
+			DelToResFriend.PacketId = (UINT16)PACKET_ID::DELETE_FRIEND_RESPONSE_TO_RESPONSE_USER;
+			DelToResFriend.PacketLength = sizeof(DELETE_FRIEND_RESPONSE_TO_RESPONSE_USER);
 			DelToResFriend.reqUserPKNum = DelFriendPakcet->reqUserPKNum;
 			SendPacketFunc(userManager->FindUserByPK(DelResFriend), sizeof(DELETE_FRIEND_RESPONSE_TO_RESPONSE_USER), (char*)&DelToResFriend);
 		}
@@ -322,21 +358,31 @@ void PacketManager::DeleteFriend(UINT32 clientIndex_, UINT16 packetSize_, char* 
 void PacketManager::EnterParty(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
 
 	std::lock_guard<std::mutex> pguard(partyLock);
-	UINT16 makePartyCheck = partyManager->MakePartyCheck();
-	MAKE_PARTY_RESPONSE MakeParty_Res;
+	auto EnterPartyPacket = reinterpret_cast<PARTY_ENTER_REQUEST*>(pPacket_);
+	auto ReqUserPKNum = EnterPartyPacket->reqUserPKNum;
+	auto PartyIdx = EnterPartyPacket->partyIdx;
 
-	if (makePartyCheck == 0) {
-		MakeParty_Res.partyRes = (UINT16)ERROR_CODE::PARTY_FULL;
+	PARTY_ENTER_RESPONSE PartyEnterRes;
+	PartyEnterRes.PacketId = (UINT16)PACKET_ID::PARTY_ENTER_RESPONSE;
+	PartyEnterRes.PacketLength = sizeof(PARTY_ENTER_RESPONSE);
+
+	//들어갈 수 있으면 이 함수 실행
+	if (partyManager->UsableEnterCheck(PartyIdx)!=0) {
+		PartyEnterRes.partyRes = (UINT16)mySQLManager->EnterParty(ReqUserPKNum, PartyIdx, partyManager->UsableEnterCheck(PartyIdx));
+		SendPacketFunc(clientIndex_, sizeof(PARTY_ENTER_RESPONSE), (char*)&PartyEnterRes);
 	}
-
+	else{
+		PartyEnterRes.partyRes = (UINT16)ERROR_CODE::PARTY_FULL;
+		SendPacketFunc(clientIndex_, sizeof(PARTY_ENTER_RESPONSE), (char*)&PartyEnterRes);
+	}
 }
 
 void PacketManager::MakeParty(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
 
 	std::lock_guard<std::mutex> pguard(partyLock);
-	UINT16 makePartyCheck = partyManager->MakePartyCheck();
+	INT16 makePartyCheck = partyManager->MakePartyCheck();
 
-	if (makePartyCheck == 0) {
+	if (makePartyCheck == -1) {
 
 		MAKE_PARTY_RESPONSE MakeParty_Res;
 		MakeParty_Res.PacketId = (UINT16)PACKET_ID::MAKE_PARTY_REQUEST;
@@ -349,14 +395,22 @@ void PacketManager::MakeParty(UINT32 clientIndex_, UINT16 packetSize_, char* pPa
 	else {
 
 		auto MakePartyPakcet = reinterpret_cast<MAKE_PARTY_REQUEST*>(pPacket_);
-		auto MakePartyResult = mySQLManager->MakeParty(MakePartyPakcet->reqUserPKNum, MakePartyPakcet->resUserPKNum, makePartyCheck);
+		auto MakePartyResult = mySQLManager->MakeParty(makePartyCheck, MakePartyPakcet->reqUserPKNum, MakePartyPakcet->resUserPKNum);
 
 		MAKE_PARTY_RESPONSE MakeParty_Res;
 		MakeParty_Res.PacketId = (UINT16)PACKET_ID::MAKE_PARTY_REQUEST;
 		MakeParty_Res.PacketLength = sizeof(MAKE_PARTY_RESPONSE);
-		MakeParty_Res.partyRes = (UINT16)MakePartyResult;
 
-		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&MakeParty_Res);
+		if (MakePartyResult == ERROR_CODE::NONE) {
+			MakeParty_Res.partyRes = (UINT16)MakePartyResult;
+			SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&MakeParty_Res);
+			partyManager->MakeParty(makePartyCheck, MakePartyPakcet->reqUserPKNum, MakePartyPakcet->resUserPKNum);
+		}
+
+		else {
+			MakeParty_Res.partyRes = (UINT16)ERROR_CODE::PARTY_MAKE_FAIL;
+			SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&MakeParty_Res);
+		}
 	}
 
 }

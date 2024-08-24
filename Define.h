@@ -1,4 +1,5 @@
 #pragma once
+
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <mswsock.h>
@@ -16,14 +17,6 @@ struct OverlappedEx {
 	WSABUF		m_wsaBuf;				//Overlapped I/O작업 버퍼
 	IOOperation m_eOperation;			//작업 동작 종류
 	UINT32 SessionIndex = 0;			//유저 인덱스
-};
-
-struct FriendInfo {
-	UINT32 userPkNum;
-	std::string id;
-	UINT8 userLevel;
-	UINT16 partyIdx=0;
-	INT8 Check = 0;
 };
 
 // 암호 256*101 - 256/3 + 소켓

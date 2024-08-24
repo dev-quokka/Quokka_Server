@@ -1,6 +1,7 @@
 #pragma once
-#pragma comment(lib, "ws2_32")
-#pragma comment(lib, "mswsock.lib")
+
+#pragma comment(lib, "ws2_32.lib") //비주얼에서 소켓프로그래밍 하기 위한 것
+#pragma comment(lib,"mswsock.lib") //AcceptEx를 사용하기 위한 것
 
 #include <thread>
 #include <vector>
@@ -274,9 +275,12 @@ private:
 	}
 
 	bool CreateWorkThread() {
-		for (int i = 0; i < MaxIOWorkerThreadCnt; i++) {
+		auto threadCount = (MaxIOWorkerThreadCnt * 2) + 1;
+		for (int i = 0; i < threadCount; i++) {
 			IOWorkerThread.emplace_back([this]() {WorkThread(); });
 		}
+		std::cout << "Work 쓰레드 시작" << std::endl;
+		return true;
 	}
 
 	//accept요청을 처리하는 쓰레드 생성
