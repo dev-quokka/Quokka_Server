@@ -21,6 +21,8 @@ public:
 			std::cout << "데이터베이스 연결 실패" << std::endl;
 		}
 
+		std::cout << "데이터베이스 연결 성공" << std::endl;
+
 	}
 
 	void CloseMySQL() {

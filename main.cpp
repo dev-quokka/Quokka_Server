@@ -2,7 +2,7 @@
 #include <string>
 #include <iostream>
 
-const UINT16 SERVER_PORT = 8080;
+const UINT16 SERVER_PORT = 9000;
 const UINT16 MAX_CLIENT = 50;		//총 접속할수 있는 클라이언트 수
 const UINT32 MAX_IO_WORKER_THREAD = 4;  //쓰레드 풀에 넣을 쓰레드 수
 
@@ -18,13 +18,13 @@ int main()
 
 	server.Run(MAX_CLIENT);
 
-	printf("아무 키나 누를 때까지 대기합니다\n");
+	std::string inputCmd;
+	std::cout<<"서버를 끝내려면 quokka를 입력해주세요" << std::endl;
+
 	while (true)
 	{
-		std::string inputCmd;
-		std::getline(std::cin, inputCmd);
-
-		if (inputCmd == "quit")
+		std::cin >> inputCmd;
+		if (inputCmd == "quokka")
 		{
 			break;
 		}

@@ -15,19 +15,7 @@ public:
 	INT32 GetCurrentUserCnt() {
 		return CurrentUserCnt;
 	}
-		 
-	void Init(int maxUserCnt_) {
-		maxUserCnt = maxUserCnt_;
 
-	}
-
-	void AddUser(int userIdx_,int userPKNum_,char* userID_) {
-		std::lock_guard<std::mutex> guard(auLock);
-		users[userIdx_]->SetLogin(userID_,userPKNum_);
-		currentUserMap[userPKNum_] = userIdx_;
-		// 模备 蜡历 沥焊 夸没
-	}
-	
 	// 模备 茫扁
 	INT32 FindUserByPK(int userPKNum_) {
 		auto res = currentUserMap.find(userPKNum_);
@@ -38,11 +26,29 @@ public:
 
 		return -1;
 	}
+		 
+	void Init(int maxUserCnt_) {
+		maxUserCnt = maxUserCnt_;
+		users = std::vector<User*>(maxUserCnt_);
+
+		for (auto i = 0; i < maxUserCnt_; i++)
+		{
+			users[i] = new User();
+			users[i]->Init(i);
+		}
+	}
+
+	void AddUser(int userIdx_,int userPKNum_,char* userID_) {
+		std::lock_guard<std::mutex> guard(auLock);
+		users[userIdx_]->SetLogin(userID_,userPKNum_);
+		currentUserMap[userPKNum_] = userIdx_;
+		// 模备 蜡历 沥焊 夸没
+	}
 
 	void DeleteUserInfo(User* user_)
 	{
+		users[currentUserMap[user_->GetUserPKNum()]]->Clear();
 		currentUserMap.erase(user_->GetUserPKNum());
-		user_->Clear();
 	}
 
 	User* GetUserByIdx(INT32 clientIndex_)

@@ -42,6 +42,8 @@ public :
 		UserID = "";
 		/*mIsConfirm = false;*/
 		CurDomainState = USER_STATE::NONE;
+		uPartyProperty = PartyProperty::SOLO;
+		UserLevel = 1;
 
 		PakcetDataBufferWPos = 0;
 		PakcetDataBufferRPos = 0;
@@ -141,9 +143,9 @@ public :
 private:
 
 	UINT8 UserIdx;
-	UINT8 PartyIdx = -1;
-	PartyProperty uPartyProperty = PartyProperty::SOLO;
-	UINT16 UserLevel = 1;
+	UINT8 PartyIdx;
+	PartyProperty uPartyProperty;
+	UINT16 UserLevel;
 	UINT16 UserPkNum;
 
 	std::string UserID;

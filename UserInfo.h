@@ -7,11 +7,13 @@
 class UserInfo {
 
 public:
-
+	UINT64 mLatestClosedTimeSec = 0;
+	UINT64 GetLatestClosedTimeSec() { return mLatestClosedTimeSec; }
 	bool IsConnect() { return uIsConnect == 1; }
 
 	int getUserPartyIdx() { return UserPartyIdx; }
-	int getUserIdx() { return UserIdx; }
+
+	int GetUserIdx() { return UserIdx; }
 
 	char* RecvBuffer() { return RecvBuf; }
 
@@ -24,7 +26,22 @@ public:
 	}
 
 	// accpet 비동기 처리
-	bool PostAccept(SOCKET listenSocket) {
+	bool PostAccept(SOCKET listenSocket_, const UINT64 curTimeSec_) {
+		mLatestClosedTimeSec = curTimeSec_;
+
+		//// 성능향상을 위해서 mswsock.dll 사용 자제
+		//LPFN_ACCEPTEX g_accept;
+		//GUID guid = WSAID_ACCEPTEX;
+		//DWORD dwBytes{ 0 };
+
+		//WSAIoctl(listenSocket_,SIO_GET_EXTENSION_FUNCTION_POINTER,&guid,sizeof(guid),
+		//	&g_accept,sizeof(g_accept),
+		//	&dwBytes,NULL,NULL);
+
+		//SOCKADDR_IN client_addr;
+		//int addr_len = sizeof(client_addr);
+		//ZeroMemory(&client_addr, addr_len);
+
 		uSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_IP,
 			NULL, 0, WSA_FLAG_OVERLAPPED);
 
@@ -33,7 +50,7 @@ public:
 			std::cout << "client Socket WSASocket Error : " << GetLastError() << std::endl;
 			return false;
 		}
-
+	
 		ZeroMemory(&uAcceptContext, sizeof(OverlappedEx));
 
 		DWORD bytes = 0;
@@ -43,7 +60,7 @@ public:
 		uAcceptContext.m_eOperation = IOOperation::ACCEPT;
 		uAcceptContext.SessionIndex = UserIdx;
 
-		if (FALSE == AcceptEx(listenSocket, uSocket, uAcceptBuf, 0,
+		if (false == AcceptEx(listenSocket_, uSocket, uAcceptBuf, 0,
 			sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &bytes, (LPWSAOVERLAPPED) & (uAcceptContext)))
 		{
 			if (WSAGetLastError() != WSA_IO_PENDING)
@@ -51,6 +68,16 @@ public:
 				std::cout << "AcceptEx Error : " << GetLastError() << std::endl;
 				return false;
 			}
+		}
+
+		else {
+
+			//if (SOCKET_ERROR == setsockopt(uSocket, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)listenSocket_, sizeof(SOCKET))) {
+			//	std::cout << "셋소켓 실패" << std::endl;
+			//};
+			
+			std::cout << "PostAccept 실행 성공" << std::endl;
+
 		}
 
 		return true;
@@ -214,6 +241,26 @@ private:
 			return false;
 		}
 
+		return true;
+	}
+
+	bool SetSocketOption()
+	{
+
+		int opt = 1;
+		if (SOCKET_ERROR == setsockopt(uSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&opt, sizeof(int)))
+		{
+			std::cout << "[DEBUG] TCP_NODELAY error : "<< GetLastError() << std::endl;
+			return false;
+		}
+
+		opt = 0;
+		if (SOCKET_ERROR == setsockopt(uSocket, SOL_SOCKET, SO_RCVBUF, (const char*)&opt, sizeof(int)))
+		{
+			std::cout << "[DEBUG] SO_RCVBUF change error : " << GetLastError() << std::endl;
+			return false;
+		}
+		std::cout << "소켓옵션 설정" << std::endl;
 		return true;
 	}
 

@@ -22,11 +22,21 @@ void PacketManager::Init(const UINT32 maxClient_)
 	// <파티>
 	RecvFuntionDictionary[(int)PACKET_ID::MAKE_PARTY_REQUEST] = &PacketManager::MakeParty;
 	RecvFuntionDictionary[(int)PACKET_ID::PARTY_ENTER_REQUEST] = &PacketManager::EnterParty;
-	RecvFuntionDictionary[(int)PACKET_ID::PARTY_LEAVE_REQUEST] = &PacketManager::LeaveParty;
+	/*RecvFuntionDictionary[(int)PACKET_ID::PARTY_LEAVE_REQUEST] = &PacketManager::LeaveParty;
 	RecvFuntionDictionary[(int)PACKET_ID::PARTY_CHAT_REQUEST] = &PacketManager::PartyChatMessage;
 
-	RecvFuntionDictionary[(int)PACKET_ID::WHISPER_CHAT_REQUEST] = &PacketManager::Whisper;
+	RecvFuntionDictionary[(int)PACKET_ID::WHISPER_CHAT_REQUEST] = &PacketManager::Whisper;*/
+	std::cout << "패킷매니저 init 성공" << std::endl;
 
+	mySQLManager = new MySQLManager;
+
+	CreateCompent(maxClient_);
+}
+
+void PacketManager::CreateCompent(const UINT32 maxClient_)
+{
+	userManager = new UserManager;
+	userManager->Init(maxClient_);
 }
 
 bool PacketManager::Run()
@@ -61,10 +71,6 @@ void PacketManager::End()
 		ProcessThread.join();
 	}
 }
-
-void EnterParty(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
-	
-};
 
 PacketInfo PacketManager::DequePacketData()
 {
@@ -150,15 +156,15 @@ void PacketManager::ReceivePacketData(const UINT32 clientIndex_, const UINT32 si
 
 void PacketManager::UserConnect(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_)
 {
-	printf("[ProcessUserConnect] clientIndex: %d\n", clientIndex_);
+	std::cout << "[ProcessUserConnect] clientIndex : " << clientIndex_ << std::endl;
 	auto User = userManager->GetUserByIdx(clientIndex_);
 	User->Clear();
 }
 
 void PacketManager::UserDisConnect(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_)
 {
-	printf("[ProcessUserDisConnect] clientIndex: %d\n", clientIndex_);
-	ClearConnectionInfo(clientIndex_);
+	std::cout << "[ProcessUserDisConnect] clientIndex : "<< clientIndex_<<std::endl;
+	/*ClearConnectionInfo(clientIndex_);*/
 }
 
 void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {

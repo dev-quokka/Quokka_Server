@@ -110,14 +110,13 @@ public:
 			return false;
 		}
 
-		auto bIOCPHandle = CreateIoCompletionPort((HANDLE)ListenSkt, sIOCPHandle, 0, 0);
+		auto bIOCPHandle = CreateIoCompletionPort((HANDLE)ListenSkt, sIOCPHandle,(UINT32)0, 0);
 		if (bIOCPHandle == nullptr) {
 			std::cout << "iocp 핸들 바인드 실패" << std::endl;
 			return false;
 		}
 
-		std::cout << "서버시작" << std::endl;
-		std::cout << "======================" << std::endl << std::endl;
+		std::cout << "바인드 리슨 성공" << std::endl;
 		return true;
 	}
 
@@ -136,7 +135,7 @@ public:
 			return false;
 		}
 		
-		printf("서버 시작\n");
+		std::cout << "서버 시작" << std::endl;
 		return true;
 	}
 
@@ -184,15 +183,13 @@ private:
 	}
 
 	// 일단 50명으로 세팅
-	void CreateClient(const UINT32 maxClientCount)
+	void CreateClient(const UINT16 maxClientCount)
 	{
-		for (UINT32 i = 0; i < maxClientCount; ++i)
+		for (UINT16 i = 0; i < maxClientCount; i++)
 		{
 			auto user = new UserInfo;
 			user->Init(i,sIOCPHandle);
-			CheckuInfos.push(i);
-
-			uInfos.push_back(user);
+			uInfos.emplace_back(user);
 		}
 	}
 
@@ -200,18 +197,29 @@ private:
 		LPOVERLAPPED lpOverlapped = NULL;
 		UserInfo* userInfo = nullptr;
 		DWORD dwIoSize = 0;
-		bool gqSucces = false; // 함수 호출 성공 여부 (false면 네트워크 접속이 비정상으로 끊겼을 때)
+		bool gqSucces = TRUE;
 
 		while (WorkRun) {
-
 			gqSucces = GetQueuedCompletionStatus(
-				(HANDLE)ListenSkt,
+				sIOCPHandle,
 				&dwIoSize,
 				(PULONG_PTR)&userInfo,
-				//컴플릿트 아이오 키
 				&lpOverlapped,
 				INFINITE
 			);
+
+			//사용자 쓰레드 종료 메세지 처리
+			if (TRUE == gqSucces && 0 == dwIoSize && NULL == lpOverlapped)
+			{
+				WorkRun = false;
+				continue;
+			}
+
+			if (NULL == lpOverlapped)
+			{
+				continue;
+			}
+
 
 			auto pOverlappedEx = (OverlappedEx*)lpOverlapped;
 
@@ -226,15 +234,14 @@ private:
 			if (IOOperation::ACCEPT == pOverlappedEx->m_eOperation)
 			{
 				userInfo = GetClientInfo(pOverlappedEx->SessionIndex);
-
+				std::cout << "유저 Accept 요청" << std::endl;
 				if (userInfo->AcceptCompletion())
 				{
 					usercnt_mutex.lock();
 					//클라이언트 갯수 증가
 					++sUserCnt;
+					OnConnect(userInfo->GetUserIdx());
 					usercnt_mutex.unlock();
-
-					OnConnect(userInfo->getUserIdx());
 				}
 				else
 				{
@@ -244,7 +251,7 @@ private:
 			//Overlapped I/O Recv작업 결과 뒤 처리
 			else if (IOOperation::RECV == pOverlappedEx->m_eOperation)
 			{
-				OnReceive(userInfo->getUserIdx(), dwIoSize, userInfo->RecvBuffer());
+				OnReceive(userInfo->GetUserIdx(), dwIoSize, userInfo->RecvBuffer());
 
 				userInfo->BindRecv();
 			}
@@ -253,7 +260,7 @@ private:
 			{
 				userInfo->SendCompleted(dwIoSize);
 			}
-
+			std::cout << "나이스 한바꾸" << std::endl;
 		}
 
 	}
@@ -266,7 +273,7 @@ private:
 			return;
 		}
 
-		auto clientIndex = user->getUserIdx();
+		auto clientIndex = user->GetUserIdx();
 
 		user->Close(isForce_);
 
@@ -295,18 +302,28 @@ private:
 	{
 		while (AccepterRun)
 		{
-
+			auto curTimeSec = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 			for (auto user : uInfos)
 			{
 				if (user->IsConnect())
 				{
 					continue;
 				}
+				if ((UINT64)curTimeSec < user->GetLatestClosedTimeSec())
+				{
+					continue;
+				}
 
-				user->PostAccept(ListenSkt);
+				auto diff = curTimeSec - user->GetLatestClosedTimeSec();
+				if (diff <= 3)
+				{
+					continue;
+				}
+
+				user->PostAccept(ListenSkt,curTimeSec);
 			}
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(30));
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		}
 	}
 
@@ -328,7 +345,7 @@ private:
 	std::unique_ptr<PacketManager> m_pPacketManager;
 
 	bool AccepterRun = true;
-	bool WorkRun = false;
+	bool WorkRun = true;
 	bool ComQueStatus = false;
 
 	int sUserCnt = 0;
