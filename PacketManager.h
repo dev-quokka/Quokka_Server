@@ -33,6 +33,8 @@ public:
 
 private:
 
+	void CreateCompent(const UINT32 maxClient_);
+
 	void EnqueuePacketData(const UINT32 clientIndex_);
 
 	PacketInfo DequePacketData();
@@ -62,9 +64,6 @@ private:
 
 	//==== <네트워크> ====
 
-	// 회원가입 요청
-	void JoinNewUser();
-
 	// 로그인 요청
 	void Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_);
 
@@ -74,8 +73,8 @@ private:
 	// 접속종료
 	void UserDisConnect(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_);
 
-	// 로그아웃 요청
-	void Logout();
+	// 로그아웃 요청 (로그아웃 한다고 접속종료는 아님)
+	void Logout(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_);
 
 	// 유저 검색
 	void FindUserById(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_);
