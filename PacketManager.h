@@ -62,6 +62,7 @@ private:
 	std::deque<UINT32> UserPacketIndex;
 	std::deque<PacketInfo> SystemPacketQueue;
 
+
 	//==== <네트워크> ====
 
 	// 로그인 요청

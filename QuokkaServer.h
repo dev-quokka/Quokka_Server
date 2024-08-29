@@ -252,15 +252,15 @@ private:
 			else if (IOOperation::RECV == pOverlappedEx->m_eOperation)
 			{
 				OnReceive(userInfo->GetUserIdx(), dwIoSize, userInfo->RecvBuffer());
-
+				std::cout << "유저 Recv 요청" << std::endl;
 				userInfo->BindRecv();
 			}
 			//Overlapped I/O Send작업 결과 뒤 처리
 			else if (IOOperation::SEND == pOverlappedEx->m_eOperation)
 			{
+				std::cout << "유저 Send 요청" << std::endl;
 				userInfo->SendCompleted(dwIoSize);
 			}
-			std::cout << "나이스 한바꾸" << std::endl;
 		}
 
 	}
