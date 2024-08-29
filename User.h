@@ -2,7 +2,7 @@
 
 #include "Packet.h"
 #include <unordered_map>
-
+#include <iostream>
 enum class USER_STATE
 {
 	NONE = 0,
@@ -108,6 +108,8 @@ public :
 
 		CopyMemory(&PakcetDataBuffer[PakcetDataBufferWPos], pData_, dataSize_);
 		PakcetDataBufferWPos += dataSize_;
+
+		std::cout << "¼Â ÆÐÅ¶ µ¹¾Ò´Ù" << std::endl;
 	}
 
 	PacketInfo GetPacket()
@@ -118,6 +120,8 @@ public :
 
 		UINT32 remainByte = PakcetDataBufferWPos - PakcetDataBufferRPos;
 
+		std::cout << "°Ù ÆÐÅ¶ µé¾î¿È1" << std::endl;
+
 		if (remainByte < PACKET_HEADER_LENGTH)
 		{
 			return PacketInfo();
@@ -125,6 +129,7 @@ public :
 
 		auto pHeader = (PACKET_HEADER*)&PakcetDataBuffer[PakcetDataBufferRPos];
 
+		std::cout << "°Ù ÆÐÅ¶ µé¾î¿È 2" << std::endl;
 		if (pHeader->PacketLength > remainByte)
 		{
 			return PacketInfo();
@@ -136,6 +141,11 @@ public :
 		packetInfo.pDataPtr = &PakcetDataBuffer[PakcetDataBufferRPos];
 
 		PakcetDataBufferRPos += pHeader->PacketLength;
+
+		std::cout << "°Ù ÆÐÅ¶ µ¹¾Ò´Ù" << std::endl;
+		std::cout << packetInfo.PacketId << std::endl;
+		std::cout << packetInfo.DataSize << std::endl;
+		std::cout << packetInfo.pDataPtr << std::endl;
 
 		return packetInfo;
 	}

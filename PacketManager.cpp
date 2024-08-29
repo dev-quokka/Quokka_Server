@@ -52,7 +52,9 @@ bool PacketManager::Run()
 }
 
 void PacketManager::ProcessRecvPacket(const UINT32 clientIndex_, const UINT16 packetId_, const UINT16 packetSize_, char* pPacket_)
-{
+{	
+	std::cout << "겟 패킷 까지 가져왔다" << std::endl;
+
 	auto iter = RecvFuntionDictionary.find(packetId_);
 	if (iter != RecvFuntionDictionary.end())
 	{
@@ -82,7 +84,6 @@ PacketInfo PacketManager::DequePacketData()
 		{
 			return PacketInfo();
 		}
-
 		userIndex = UserPacketIndex.front();
 		UserPacketIndex.pop_front();
 	}
@@ -90,6 +91,7 @@ PacketInfo PacketManager::DequePacketData()
 	auto pUser = userManager->GetUserByIdx(userIndex);
 	auto packetData = pUser->GetPacket();
 	packetData.ClientIndex = userIndex;
+	std::cout << "덱 패킷데이터 들어오긴 했다 " << std::endl;
 	return packetData;
 }
 
@@ -110,13 +112,18 @@ PacketInfo PacketManager::DequeSystemPacketData()
 
 void PacketManager::ProcessPacket()
 {
+
+	std::cout << "패킷 쓰레드 시작" << std::endl;
+
 	while (RunProcessThread)
 	{
 		bool isIdle = true;
 
-		auto packetData = DequePacketData();
+		auto packetData= DequePacketData();
+
 		if (packetData.PacketId > (UINT16)PACKET_ID::SYS_END)
 		{
+			std::cout << "프로세스 리시브 시작" << std::endl;
 			isIdle = false;
 			ProcessRecvPacket(packetData.ClientIndex, packetData.PacketId, packetData.DataSize, packetData.pDataPtr);
 		}
