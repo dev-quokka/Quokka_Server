@@ -176,6 +176,7 @@ void PacketManager::UserDisConnect(UINT32 clientIndex_, UINT16 packetSize_, char
 
 void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
 
+	std::cout << "로그인 뀨" << std::endl;
 	if (LOGIN_REQUEST_PACKET_SIZE != packetSize_)
 	{
 		return;
@@ -240,12 +241,16 @@ void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket
 				FriendsInfo[i]->Check = -1;
 			}
 		}
-		auto FindFriendsInfo = reinterpret_cast<char*>(&FriendsInfo);
-		FIND_FRIENDS_RESPONSE FindFriendsRes;
-		FindFriendsRes.PacketId = (UINT16)PACKET_ID::FIND_FRIENDS_RESPONSE;
-		FindFriendsRes.PacketLength = sizeof(FIND_FRIENDS_RESPONSE);
-		FindFriendsRes.FriendsInfo = FindFriendsInfo;
-		SendPacketFunc(clientIndex_, sizeof(FindFriendsRes), (char*)&FindFriendsRes);
+
+		for (int i = 0; i < FriendsInfo.size(); i++)
+		{
+			FIND_FRIENDS_RESPONSE FindFriendsRes;
+			FindFriendsRes.PacketId = (UINT16)PACKET_ID::FIND_FRIENDS_RESPONSE;
+			FindFriendsRes.PacketLength = sizeof(FIND_FRIENDS_RESPONSE);
+			FriendsInfo[i]->Check = FriendsInfo.size();
+			FindFriendsRes.friendInfo = FriendsInfo[i];
+			SendPacketFunc(clientIndex_, sizeof(FIND_FRIENDS_RESPONSE), (char*)&FindFriendsRes);
+		}
 
 		//친구인 아이들에게 접속했다는 메시지 보내주기
 		if (LoginDBResult->Check == 1) {
@@ -310,8 +315,13 @@ void PacketManager::FindUserFriendsInfo(UINT32 clientIndex_, UINT16 packetSize_,
 	FIND_FRIENDS_RESPONSE FindFriendsRes;
 	FindFriendsRes.PacketId = (UINT16)PACKET_ID::FIND_FRIENDS_RESPONSE;
 	FindFriendsRes.PacketLength = sizeof(FIND_FRIENDS_RESPONSE);
-	FindFriendsRes.FriendsInfo = FindFriendsInfo;
-	SendPacketFunc(clientIndex_, sizeof(FindFriendsInfo), (char*)&FindFriendsRes);
+	FindFriendsRes.friendInfo->Check = FriendsInfo.size();
+
+	for (int i = 0; i < FriendsInfo.size(); i++)
+	{
+		FindFriendsRes.friendInfo = FriendsInfo[i];
+		SendPacketFunc(clientIndex_, sizeof(FIND_FRIENDS_RESPONSE), (char*)&FindFriendsRes);
+	}
 
 }
 

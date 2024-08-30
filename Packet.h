@@ -3,6 +3,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include "ErrorCode.h"
+
 struct PacketInfo
 {
 	UINT32 ClientIndex = 0;
@@ -54,7 +56,7 @@ struct FIND_FRIENDS_REQUEST : public PACKET_HEADER
 
 struct FIND_FRIENDS_RESPONSE : public PACKET_HEADER
 {
-	char* FriendsInfo = nullptr;
+	FriendInfo* friendInfo;
 };
 
 struct FRIEND_REQUEST_REQUEST : public PACKET_HEADER

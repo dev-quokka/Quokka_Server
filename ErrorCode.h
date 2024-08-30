@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 struct FriendInfo {
 	UINT32 userPkNum;
