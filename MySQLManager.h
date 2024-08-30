@@ -3,6 +3,7 @@
 #include <mysql.h>
 #include <string>
 #include "ErrorCode.h"
+
 #pragma comment (lib, "libmysql.lib") // mysql ¿¬µ¿
 
 class MySQLManager {
@@ -35,7 +36,7 @@ public:
 		std::string temp_user_pk;
 		std::string temp_user_id;
 		std::string temp_password;
-		std::string query_s = "SELECT user_id,id,password FROM user_tb WHERE user_id = '" + user_id + "'";
+		std::string query_s = "SELECT user_id,id,password FROM user_tb WHERE id = '" + user_id + "'";
 		
 		const char* Query = &*query_s.begin();
 		
@@ -64,7 +65,7 @@ public:
 		}
 
 		else {
-			query_s = "SELECT user_id,id,user_level,user_party_num,friends_request FROM user_tb WHERE user_id = '" + user_id + "'";
+			query_s = "SELECT user_id,id,user_level,user_party_num,friends_request FROM user_tb WHERE id = '" + user_id + "'";
 
 			Query = &*query_s.begin();
 
@@ -74,7 +75,7 @@ public:
 				Result = mysql_store_result(ConnPtr);
 				while ((Row = mysql_fetch_row(Result)) != NULL) {
 					userInfo->userPkNum = (UINT32)std::stoi(Row[0]);
-					userInfo->id =(Row[1]);
+					userInfo->id = (Row[1]);
 					userInfo->userLevel= (UINT8)std::stoi(Row[2]);
 					userInfo->partyIdx = (UINT16)std::stoi(Row[3]);
 					userInfo->Check = (INT8)std::stoi(Row[4]);
@@ -109,7 +110,7 @@ public:
 	std::vector<FriendInfo*> FindUserFriendsInfo(UINT32 userPKNum_) {
 
 		std::vector<FriendInfo*> FriendsInfo;
-		std::string query_s = "select u.user_id,u.id,u.user_level,u.user_party_num from friends_tb f LEFT JOIN user_tb u on f.user_pk2 = u.user_id where user_pk1 = '" + std::to_string(userPKNum_) + "'";
+		std::string query_s = "select u.user_id,u.id,u.user_level,u.user_party_num from friends_tb f LEFT JOIN user_tb u on f.user_pk2 = u.user_id where user_pk1 = " + std::to_string(userPKNum_);
 
 		const char* Query = &*query_s.begin();
 		MysqlResult = mysql_query(ConnPtr, Query);
@@ -117,12 +118,12 @@ public:
 		if (MysqlResult == 0) {
 			Result = mysql_store_result(ConnPtr);
 			while ((Row = mysql_fetch_row(Result)) != NULL) {
-				FriendInfo* friendInfo = new FriendInfo;
-				friendInfo->userPkNum = std::stoi(Row[0]);
-				friendInfo->id = (Row[1]);
-				friendInfo->partyIdx = std::stoi(Row[2]);
-				friendInfo->userLevel = std::stoi(Row[3]);
-				FriendsInfo.emplace_back(friendInfo);
+				FriendInfo* temp_friendInfo = new FriendInfo;
+				temp_friendInfo->userPkNum = std::stoi(Row[0]);
+				temp_friendInfo->id = (Row[1]);
+				temp_friendInfo->partyIdx = std::stoi(Row[2]);
+				temp_friendInfo->userLevel = std::stoi(Row[3]);
+				FriendsInfo.emplace_back(temp_friendInfo);
 			}
 			mysql_free_result(Result);
 		}
