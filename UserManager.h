@@ -38,10 +38,10 @@ public:
 		}
 	}
 
-	void AddUser(int userIdx_,int userPKNum_,char* userID_) {
+	void AddUser(int userIdx_,FriendInfo* friendInfo_) {
 		std::lock_guard<std::mutex> guard(auLock);
-		users[userIdx_]->SetLogin(userID_,userPKNum_);
-		currentUserMap[userPKNum_] = userIdx_;
+		users[userIdx_]->SetLogin(friendInfo_);
+		currentUserMap[friendInfo_->userPkNum] = userIdx_;
 		// 模备 蜡历 沥焊 夸没
 	}
 
