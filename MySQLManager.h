@@ -31,7 +31,7 @@ public:
 		mysql_close(ConnPtr);
 	}
 
-	FriendInfo* MysqlLoginCheck(std::string user_id, std::string userPassword) {
+	UINT32 MysqlLoginCheck(std::string user_id, std::string userPassword) {
 
 		std::string temp_user_pk;
 		std::string temp_user_id;
@@ -52,38 +52,44 @@ public:
 			mysql_free_result(Result);
 		}
 
-		FriendInfo* userInfo = new FriendInfo;
-
 		if (user_id != temp_user_id) {
-			userInfo->Check = -1;
-			return userInfo;
+			return 1;
 		}
 
 		else if (userPassword != temp_password) {
-			userInfo->Check = -2;
-			return userInfo;
+			return 2;
 		}
 
 		else {
-			query_s = "SELECT user_id,id,user_level,user_party_num,friends_request FROM user_tb WHERE id = '" + user_id + "'";
-
-			Query = &*query_s.begin();
-
-			MysqlResult = mysql_query(ConnPtr, Query);
-
-			if (MysqlResult == 0) {
-				Result = mysql_store_result(ConnPtr);
-				while ((Row = mysql_fetch_row(Result)) != NULL) {
-					userInfo->userPkNum = (UINT32)std::stoi(Row[0]);
-					userInfo->id = (Row[1]);
-					userInfo->userLevel= (UINT8)std::stoi(Row[2]);
-					userInfo->partyIdx = (UINT16)std::stoi(Row[3]);
-					userInfo->Check = (INT8)std::stoi(Row[4]);
-				}
-				mysql_free_result(Result);
-			}
-			return userInfo;
+			return (UINT32)std::stoi(temp_user_pk);
 		}
+	}
+
+	FriendInfo MyInfo(UINT8 LoginDBResult_) {
+
+		std::string query_s = "SELECT user_id,id,user_level,user_party_num,friends_request FROM user_tb WHERE user_id = " + std::to_string(LoginDBResult_);
+
+		const char* Query = &*query_s.begin();
+
+		Query = &*query_s.begin();
+
+		MysqlResult = mysql_query(ConnPtr, Query);
+
+		FriendInfo userInfo;
+
+		if (MysqlResult == 0) {
+			Result = mysql_store_result(ConnPtr);
+			while ((Row = mysql_fetch_row(Result)) != NULL) {
+				userInfo.userPkNum = (UINT32)std::stoi(Row[0]);
+				userInfo.id = (Row[1]);
+				userInfo.userLevel = (UINT32)std::stoi(Row[2]);
+				userInfo.partyIdx = (UINT32)std::stoi(Row[3]);
+				userInfo.Check = (UINT32)std::stoi(Row[4]);
+			}
+			mysql_free_result(Result);
+		}
+
+		return userInfo;
 	}
 
 	UINT32  FindUserById(std::string userId_) {

@@ -2,7 +2,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
 #include "ErrorCode.h"
 
 struct PacketInfo
@@ -36,8 +35,8 @@ const size_t LOGIN_REQUEST_PACKET_SIZE = sizeof(LOGIN_REQUEST_PACKET);
 struct LOGIN_RESPONSE_PACKET : public PACKET_HEADER
 {
 	UINT16 LoginResult;
+	FriendInfo MyInfo;
 };
-
 
 struct FIND_USER_REQUEST : public PACKET_HEADER 
 {
@@ -56,7 +55,7 @@ struct FIND_FRIENDS_REQUEST : public PACKET_HEADER
 
 struct FIND_FRIENDS_RESPONSE : public PACKET_HEADER
 {
-	FriendInfo* friendInfo;
+	FriendInfo friendInfo;
 };
 
 struct FRIEND_REQUEST_REQUEST : public PACKET_HEADER

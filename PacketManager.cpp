@@ -53,8 +53,6 @@ bool PacketManager::Run()
 
 void PacketManager::ProcessRecvPacket(const UINT32 clientIndex_, const UINT16 packetId_, const UINT16 packetSize_, char* pPacket_)
 {	
-	std::cout << "겟 패킷 까지 가져왔다" << std::endl;
-
 	auto iter = RecvFuntionDictionary.find(packetId_);
 	if (iter != RecvFuntionDictionary.end())
 	{
@@ -91,7 +89,6 @@ PacketInfo PacketManager::DequePacketData()
 	auto pUser = userManager->GetUserByIdx(userIndex);
 	auto packetData = pUser->GetPacket();
 	packetData.ClientIndex = userIndex;
-	std::cout << "덱 패킷데이터 들어오긴 했다 " << std::endl;
 	return packetData;
 }
 
@@ -123,7 +120,6 @@ void PacketManager::ProcessPacket()
 
 		if (packetData.PacketId > (UINT16)PACKET_ID::SYS_END)
 		{
-			std::cout << "프로세스 리시브 시작" << std::endl;
 			isIdle = false;
 			ProcessRecvPacket(packetData.ClientIndex, packetData.PacketId, packetData.DataSize, packetData.pDataPtr);
 		}
@@ -176,7 +172,6 @@ void PacketManager::UserDisConnect(UINT32 clientIndex_, UINT16 packetSize_, char
 
 void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
 
-	std::cout << "로그인 뀨" << std::endl;
 	if (LOGIN_REQUEST_PACKET_SIZE != packetSize_)
 	{
 		return;
@@ -204,14 +199,14 @@ void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket
 
 
 	// 아이디가 다를때
-	if (LoginDBResult->Check == -1) {
+	if (LoginDBResult == 1) {
 		LoginResPacket.LoginResult = (UINT16)ERROR_CODE::LOGIN_USER_INVALID_ID;
 		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
 		return;
 	}
 
 	// 비밀번호가 다를때
-	else if (LoginDBResult->Check ==  -2) {
+	else if (LoginDBResult == 2) {
 		LoginResPacket.LoginResult = (UINT16)ERROR_CODE::LOGIN_USER_INVALID_PW;
 		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
 		return;
@@ -219,54 +214,46 @@ void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket
 
 	else {
 		// 이미 유저가 로그인 중 일때
-		if (userManager->FindUserByPK(LoginDBResult->userPkNum)!=-1) {
+		if (userManager->FindUserByPK(LoginDBResult)!=-1) {
 			//접속중인 유저여서 실패를 반환.
 			LoginResPacket.LoginResult = (UINT16)ERROR_CODE::LOGIN_USER_ALREADY;
 			SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
 			return;
 		}
 
-		userManager->AddUser(clientIndex_, LoginDBResult->userPkNum, UserId);
-
-		LoginResPacket.LoginResult = (UINT16)ERROR_CODE::NONE;
-		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
+		FriendInfo k = mySQLManager->MyInfo(LoginDBResult);
+		userManager->AddUser(clientIndex_, &k);
 		std::cout << "유저 " << UserId << " 접속" << std::endl;
 
 		// 그 유저 친구목록 뿌려주고
-		std::vector<FriendInfo*> FriendsInfo = mySQLManager->FindUserFriendsInfo(LoginDBResult->userPkNum);
+		std::vector<FriendInfo*> FriendsInfo = mySQLManager->FindUserFriendsInfo(LoginDBResult);
 
-		// 로그인 한 클라이언트 패킷에서 -1이면 로그아웃상태 1이면 로그인 상태
-		for (int i = 0; i < FriendsInfo.size(); i++) {
-			if (userManager->FindUserByPK(FriendsInfo[i]->userPkNum) == -1) {
-				FriendsInfo[i]->Check = -1;
-			}
-		}
+		LoginResPacket.LoginResult = (UINT16)FriendsInfo.size();
+		LoginResPacket.MyInfo = k; //FriendInfo*
+		SendPacketFunc(clientIndex_, sizeof(LOGIN_RESPONSE_PACKET), (char*)&LoginResPacket);
 
-		for (int i = 0; i < FriendsInfo.size(); i++)
-		{
-			FIND_FRIENDS_RESPONSE FindFriendsRes;
-			FindFriendsRes.PacketId = (UINT16)PACKET_ID::FIND_FRIENDS_RESPONSE;
-			FindFriendsRes.PacketLength = sizeof(FIND_FRIENDS_RESPONSE);
-			FriendsInfo[i]->Check = FriendsInfo.size();
-			FindFriendsRes.friendInfo = FriendsInfo[i];
-			SendPacketFunc(clientIndex_, sizeof(FIND_FRIENDS_RESPONSE), (char*)&FindFriendsRes);
-		}
+		//// 로그인 한 클라이언트 패킷에서 -1이면 로그아웃상태 1이면 로그인 상태
+		//for (int i = 0; i < FriendsInfo.size(); i++) {
+		//	if (userManager->FindUserByPK(FriendsInfo[i]->userPkNum) == -1) {
+		//		FriendsInfo[i]->Check = -1;
+		//	}
+		//}
+		// 
+		////친구인 아이들에게 접속했다는 메시지 보내주기
+		//if (LoginDBResult->Check == 0) {
+		//	for (int i = 0; i < FriendsInfo.size(); i++) {
 
-		//친구인 아이들에게 접속했다는 메시지 보내주기
-		if (LoginDBResult->Check == 1) {
-			for (int i = 0; i < FriendsInfo.size(); i++) {
+		//		if (userManager->FindUserByPK(FriendsInfo[i]->userPkNum) == -1) continue;
 
-				if (userManager->FindUserByPK(FriendsInfo[i]->userPkNum) == -1) continue;
-
-				else {
-					CONNECT_RESPONSE_TO_FRIENDS ConnResToFriend;
-					ConnResToFriend.PacketId = (UINT16)PACKET_ID::CONNECT_RESPONSE_TO_FRIENDS;
-					ConnResToFriend.PacketLength = sizeof(CONNECT_RESPONSE_TO_FRIENDS);
-					ConnResToFriend.reqUserPKNum = LoginDBResult->userPkNum;
-					SendPacketFunc(userManager->FindUserByPK(FriendsInfo[i]->userPkNum), sizeof(CONNECT_RESPONSE_TO_FRIENDS), (char*)&ConnResToFriend);
-				}
-			}
-		}
+		//		else {
+		//			CONNECT_RESPONSE_TO_FRIENDS ConnResToFriend;
+		//			ConnResToFriend.PacketId = (UINT16)PACKET_ID::CONNECT_RESPONSE_TO_FRIENDS;
+		//			ConnResToFriend.PacketLength = sizeof(CONNECT_RESPONSE_TO_FRIENDS);
+		//			ConnResToFriend.reqUserPKNum = LoginDBResult->userPkNum;
+		//			SendPacketFunc(userManager->FindUserByPK(FriendsInfo[i]->userPkNum), sizeof(CONNECT_RESPONSE_TO_FRIENDS), (char*)&ConnResToFriend);
+		//		}
+		//	}
+		//}
 		return;
 	}
 }
@@ -293,35 +280,28 @@ void PacketManager::FindUserById(UINT32 clientIndex_, UINT16 packetSize_, char* 
 	SendPacketFunc(clientIndex_, sizeof(FIND_USER_RESPONSE), (char*)&FindUserRes);
 }
 
-//void PacketManager::FindUserFriends(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
-//
-//	auto FindFriendsPacket = reinterpret_cast<FIND_FRIENDS_REQUEST*>(pPacket_);
-//	auto UserPKNum = FindFriendsPacket->userPKNum;
-//
-//	std::vector<FriendInfo> FriendsInfo = mySQLManager->FindUserFriendsInfo(UserPKNum);
-//	auto FindFriendsInfo = reinterpret_cast<char*>(&FriendsInfo);
-//
-//	SendPacketFunc(clientIndex_, sizeof(FindFriendsInfo), FindFriendsInfo);
-//}
-
 void PacketManager::FindUserFriendsInfo(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
 
 	auto FindFriendsPacket = reinterpret_cast<FIND_FRIENDS_REQUEST*>(pPacket_);
 	auto UserPKNum = FindFriendsPacket->userPKNum;
 
 	std::vector<FriendInfo*> FriendsInfo = mySQLManager->FindUserFriendsInfo(UserPKNum);
-	auto FindFriendsInfo = reinterpret_cast<char*>(&FriendsInfo);
 
-	FIND_FRIENDS_RESPONSE FindFriendsRes;
-	FindFriendsRes.PacketId = (UINT16)PACKET_ID::FIND_FRIENDS_RESPONSE;
-	FindFriendsRes.PacketLength = sizeof(FIND_FRIENDS_RESPONSE);
-	FindFriendsRes.friendInfo->Check = FriendsInfo.size();
+	// 로그인 한 클라이언트 패킷에서 -1이면 로그아웃상태 1이면 로그인 상태
+		for (int i = 0; i < FriendsInfo.size(); i++) {
+			if (userManager->FindUserByPK(FriendsInfo[i]->userPkNum) == -1) {
+				FriendsInfo[i]->Check = -1;
+			}
+		}
 
-	for (int i = 0; i < FriendsInfo.size(); i++)
-	{
-		FindFriendsRes.friendInfo = FriendsInfo[i];
-		SendPacketFunc(clientIndex_, sizeof(FIND_FRIENDS_RESPONSE), (char*)&FindFriendsRes);
-	}
+		for (int i = 0; i < FriendsInfo.size(); i++)
+		{
+			FIND_FRIENDS_RESPONSE FindFriendsRes;
+			FindFriendsRes.PacketId = (UINT16)PACKET_ID::FIND_FRIENDS_RESPONSE;
+			FindFriendsRes.PacketLength = sizeof(FIND_FRIENDS_RESPONSE);
+			FindFriendsRes.friendInfo = *(FriendsInfo[i]);
+			SendPacketFunc(clientIndex_, sizeof(FIND_FRIENDS_RESPONSE), (char*)&FindFriendsRes);
+		}
 
 }
 

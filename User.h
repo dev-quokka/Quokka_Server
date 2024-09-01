@@ -29,12 +29,9 @@ public :
 		PakcetDataBuffer = new char[PACKET_DATA_BUFFER_SIZE];
 	}
 
-	/*void InsertUserFriends(std::vector<FriendInfo*> friendsInfos_){
+	void setUser(FriendInfo* friendInfo_) {
 
-		for (auto friendInfo : friendsInfos_)
-			Friends[friendInfo->userPkNum] = friendInfo;
-		
-	}*/
+	}
 	
 	void Clear()
 	{
@@ -53,11 +50,13 @@ public :
 		uPartyProperty = partyProperty_;
 	}
 
-	int SetLogin(char* userID_,int userPKNum_)
+	int SetLogin(FriendInfo* friendInfo_)
 	{
 		CurDomainState = USER_STATE::LOGIN;
-		UserID = userID_;
-		UserPkNum = userPKNum_;
+		UserID = friendInfo_->id;
+		UserPkNum = friendInfo_->userPkNum;
+		UserLevel = friendInfo_->userLevel;
+		PartyIdx = friendInfo_->partyIdx;
 		return 0;
 	}
 
