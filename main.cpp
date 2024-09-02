@@ -19,7 +19,7 @@ int main()
 	server.Run(MAX_CLIENT);
 
 	std::string inputCmd;
-	std::cout<<"서버를 끝내려면 quokka를 입력해주세요" << std::endl;
+	std::cout << "서버를 끝내려면 quokka를 입력해주세요" << std::endl;
 
 	while (true)
 	{

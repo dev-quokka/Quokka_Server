@@ -159,14 +159,14 @@ void PacketManager::ReceivePacketData(const UINT32 clientIndex_, const UINT32 si
 
 void PacketManager::UserConnect(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_)
 {
-	std::cout << "[ProcessUserConnect] clientIndex : " << clientIndex_ << std::endl;
+	std::cout << "蜡历 立加 clientIndex : " << clientIndex_ << std::endl;
 	auto User = userManager->GetUserByIdx(clientIndex_);
 	User->Clear();
 }
 
 void PacketManager::UserDisConnect(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_)
 {
-	std::cout << "[ProcessUserDisConnect] clientIndex : "<< clientIndex_<<std::endl;
+	std::cout << "蜡历 立加 辆丰 clientIndex : "<< clientIndex_<<std::endl;
 	/*ClearConnectionInfo(clientIndex_);*/
 }
 

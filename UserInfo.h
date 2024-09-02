@@ -29,19 +29,6 @@ public:
 	bool PostAccept(SOCKET listenSocket_, const UINT64 curTimeSec_) {
 		mLatestClosedTimeSec = curTimeSec_;
 
-		//// 성능향상을 위해서 mswsock.dll 사용 자제
-		//LPFN_ACCEPTEX g_accept;
-		//GUID guid = WSAID_ACCEPTEX;
-		//DWORD dwBytes{ 0 };
-
-		//WSAIoctl(listenSocket_,SIO_GET_EXTENSION_FUNCTION_POINTER,&guid,sizeof(guid),
-		//	&g_accept,sizeof(g_accept),
-		//	&dwBytes,NULL,NULL);
-
-		//SOCKADDR_IN client_addr;
-		//int addr_len = sizeof(client_addr);
-		//ZeroMemory(&client_addr, addr_len);
-
 		uSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_IP,
 			NULL, 0, WSA_FLAG_OVERLAPPED);
 
@@ -71,10 +58,6 @@ public:
 		}
 
 		else {
-
-			//if (SOCKET_ERROR == setsockopt(uSocket, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)listenSocket_, sizeof(SOCKET))) {
-			//	std::cout << "셋소켓 실패" << std::endl;
-			//};
 			
 			std::cout << "PostAccept 실행 성공" << std::endl;
 
@@ -92,7 +75,7 @@ public:
 
 		if (hIOCP == INVALID_HANDLE_VALUE)
 		{
-			std::cout << "[에러] CreateIoCompletionPort()함수 실패 :"<< GetLastError()<<std::endl;
+			std::cout << "reateIoCompletionPort()함수 실패 :"<< GetLastError()<<std::endl;
 			return false;
 		}
 
@@ -136,7 +119,7 @@ public:
 		//socket_error이면 client socket이 끊어진걸로 처리한다.
 		if (nRet == SOCKET_ERROR && (WSAGetLastError() != ERROR_IO_PENDING))
 		{
-			std::cout << "[에러] WSARecv()함수 실패 : " << WSAGetLastError() << std::endl;
+			std::cout << "WSARecv()함수 실패 : " << WSAGetLastError() << std::endl;
 			return false;
 		}
 
@@ -205,7 +188,7 @@ public:
 
 	void SendCompleted(const UINT32 dataSize_)
 	{
-		std::cout << "[송신 완료] bytes : "<< dataSize_ << std::endl;
+		std::cout << "송신완료 bytes : "<< dataSize_ << std::endl;
 
 		std::lock_guard<std::mutex> guard(SendLock);
 
@@ -239,7 +222,7 @@ private:
 		//socket_error이면 client socket이 끊어진걸로 처리한다.
 		if (sCheck == SOCKET_ERROR && (WSAGetLastError() != ERROR_IO_PENDING))
 		{
-			std::cout<< "[에러] WSASend()함수 실패 : " << WSAGetLastError() << std::endl;
+			std::cout<< "WSASend()함수 실패 : " << WSAGetLastError() << std::endl;
 			return false;
 		}
 
@@ -252,14 +235,14 @@ private:
 		int opt = 1;
 		if (SOCKET_ERROR == setsockopt(uSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&opt, sizeof(int)))
 		{
-			std::cout << "[DEBUG] TCP_NODELAY error : "<< GetLastError() << std::endl;
+			std::cout << "TCP_NODELAY error : "<< GetLastError() << std::endl;
 			return false;
 		}
 
 		opt = 0;
 		if (SOCKET_ERROR == setsockopt(uSocket, SOL_SOCKET, SO_RCVBUF, (const char*)&opt, sizeof(int)))
 		{
-			std::cout << "[DEBUG] SO_RCVBUF change error : " << GetLastError() << std::endl;
+			std::cout << "SO_RCVBUF change error : " << GetLastError() << std::endl;
 			return false;
 		}
 		std::cout << "소켓옵션 설정" << std::endl;
