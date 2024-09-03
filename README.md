@@ -5,7 +5,9 @@
 
 [화면단]
 
-- 아이디, 비밀번호 체크를 하고 로그인 성공하면 내 친구목록 가져오고, 친구목록 확인으로 현재 친구 목록을 확인합니다.
-https://github.com/user-attachments/assets/46525e90-52a4-468a-8cbf-366642c78090
+- 아이디, 비밀번호 체크를 하며 로그인을 성공 여부를 서버가 전송 해 줍니다.
+<img src = "https://github.com/user-attachments/assets/66166b8f-06f8-423d-ac9b-0323c6a3c33b
+">
 
-  
+- 로그인 성공하면 친구 목록을 구조체로 보내 줍니다.
+
