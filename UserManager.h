@@ -38,6 +38,11 @@ public:
 		}
 	}
 
+	void UserClear(UINT32 userIdx_) {
+		currentUserMap.erase(users[userIdx_]->GetUserPKNum());
+		users[userIdx_]->Clear();
+	}
+
 	void AddUser(int userIdx_,FriendInfo* friendInfo_) {
 		std::lock_guard<std::mutex> guard(auLock);
 		users[userIdx_]->SetLogin(friendInfo_);
@@ -65,6 +70,6 @@ private:
 	
 	std::vector<User*> users;
 
-	std::unordered_map<int, int> currentUserMap; // 유저 pk로 그 유저 구조체 알기 위한 idx 찾기 가능 <userPK, userIdx>
+	std::unordered_map<UINT32, UINT32> currentUserMap; // 유저 pk로 그 유저 구조체 알기 위한 idx 찾기 가능 <userPK, userIdx>
 
 };

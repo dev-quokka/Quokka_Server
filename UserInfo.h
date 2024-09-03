@@ -114,8 +114,6 @@ public:
 			(LPWSAOVERLAPPED) & (uAcceptOverlappedEx),
 			NULL);
 
-		std::cout << uRecvBuf << std::endl;
-
 		//socket_error이면 client socket이 끊어진걸로 처리한다.
 		if (nRet == SOCKET_ERROR && (WSAGetLastError() != ERROR_IO_PENDING))
 		{
