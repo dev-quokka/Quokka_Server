@@ -6,8 +6,8 @@
 [화면단]
 
 - 아이디, 비밀번호 체크를 하며 로그인을 성공 여부를 서버가 전송 해 줍니다.
-<img src = "https://github.com/user-attachments/assets/f130c934-b647-499b-963f-8e50672573cb
-">
+![로그인 체크](https://github.com/user-attachments/assets/ced5caf0-e7a9-4904-aad2-4e49df787ad2)
+
 
 - 로그인 성공하면 친구 목록을 구조체로 보내 줍니다.
 
