@@ -26,7 +26,7 @@ public:
 
 	void OnConnect(const UINT32 clientIndex_)
 	{
-		std::cout << "[OnConnect] 클라이언트: Index : " << clientIndex_ << std::endl;
+		std::cout << "클라이언트 Connect: Index : " << clientIndex_ << std::endl;
 
 		PacketInfo packet{ clientIndex_, (UINT16)PACKET_ID::SYS_USER_CONNECT, 0 };
 		m_pPacketManager->PushSystemPacket(packet);
@@ -34,7 +34,7 @@ public:
 
 	void OnClose(const UINT32 clientIndex_)
 	{
-		std::cout << "[OnClose] 클라이언트: Index : " << clientIndex_ << std::endl;
+		std::cout << "클라이언트 Close : Index : " << clientIndex_ << std::endl;
 
 		PacketInfo packet{ clientIndex_, (UINT16)PACKET_ID::SYS_USER_DISCONNECT, 0 };
 		m_pPacketManager->PushSystemPacket(packet);
@@ -42,7 +42,7 @@ public:
 
 	void OnReceive(const UINT32 clientIndex_, const UINT32 size_, char* pData_)
 	{
-		std::cout << "[OnReceive] 클라이언트: Index : "<< clientIndex_<< " dataSize : " << size_ << std::endl;
+		std::cout << "클라이언트 Recv : Index : "<< clientIndex_<< " dataSize : " << size_ << std::endl;
 
 		m_pPacketManager->ReceivePacketData(clientIndex_, size_, pData_);
 	}
@@ -182,17 +182,6 @@ private:
 		return uInfos[clientIndex_];
 	}
 
-	// 일단 50명으로 세팅
-	void CreateClient(const UINT16 maxClientCount)
-	{
-		for (UINT16 i = 0; i < maxClientCount; i++)
-		{
-			auto user = new UserInfo;
-			user->Init(i,sIOCPHandle);
-			uInfos.emplace_back(user);
-		}
-	}
-
 	void WorkThread() {
 		LPOVERLAPPED lpOverlapped = NULL;
 		UserInfo* userInfo = nullptr;
@@ -208,7 +197,7 @@ private:
 				INFINITE
 			);
 
-			//사용자 쓰레드 종료 메세지 처리
+			// 상대 쓰레드 종료되면 처리해주는 메시지
 			if (TRUE == gqSucces && 0 == dwIoSize && NULL == lpOverlapped)
 			{
 				WorkRun = false;
@@ -219,7 +208,6 @@ private:
 			{
 				continue;
 			}
-
 
 			auto pOverlappedEx = (OverlappedEx*)lpOverlapped;
 
@@ -281,6 +269,7 @@ private:
 		OnClose(clientIndex);
 	}
 
+	//I/O작업 완료를 받아 처리할 쓰레드 생성
 	bool CreateWorkThread() {
 		auto threadCount = (MaxIOWorkerThreadCnt * 2) + 1;
 		for (int i = 0; i < threadCount; i++) {
@@ -290,12 +279,23 @@ private:
 		return true;
 	}
 
-	//accept요청을 처리하는 쓰레드 생성
+	//Accept요청 처리하는 쓰레드 
 	bool CreateAccepterThread()
 	{
 		AcceptThread = std::thread([this]() { AccepterThread(); });
 		std::cout << "AcceptThread 시작" << std::endl;
 		return true;
+	}
+
+	//AcceptEx 예약 걸어둘 객체 미리 생성
+	void CreateClient(const UINT16 maxClientCount)
+	{
+		for (UINT16 i = 0; i < maxClientCount; i++)
+		{
+			auto user = new UserInfo;
+			user->Init(i, sIOCPHandle);
+			uInfos.emplace_back(user);
+		}
 	}
 
 	void AccepterThread()

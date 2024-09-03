@@ -159,15 +159,16 @@ void PacketManager::ReceivePacketData(const UINT32 clientIndex_, const UINT32 si
 
 void PacketManager::UserConnect(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_)
 {
-	std::cout << "[ProcessUserConnect] clientIndex : " << clientIndex_ << std::endl;
+	std::cout << "유저 접속 clientIndex : " << clientIndex_ << std::endl;
 	auto User = userManager->GetUserByIdx(clientIndex_);
 	User->Clear();
 }
 
 void PacketManager::UserDisConnect(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_)
 {
-	std::cout << "[ProcessUserDisConnect] clientIndex : "<< clientIndex_<<std::endl;
-	/*ClearConnectionInfo(clientIndex_);*/
+	userManager->UserClear(clientIndex_);
+	std::cout << "유저 정보 초기화" << std::endl;
+	std::cout << " 유저유저 접속 종료 clientIndex : "<< clientIndex_<<std::endl;
 }
 
 void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_) {
@@ -213,6 +214,7 @@ void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket
 	}
 
 	else {
+
 		// 이미 유저가 로그인 중 일때
 		if (userManager->FindUserByPK(LoginDBResult)!=-1) {
 			//접속중인 유저여서 실패를 반환.
@@ -223,6 +225,8 @@ void PacketManager::Login(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket
 
 		FriendInfo k = mySQLManager->MyInfo(LoginDBResult);
 		userManager->AddUser(clientIndex_, &k);
+
+		
 		std::cout << "유저 " << UserId << " 접속" << std::endl;
 
 		// 그 유저 친구목록 뿌려주고

@@ -16,19 +16,6 @@ public:
 		return Property;
 	}
 
-	void CloseParty() {
-
-	}
-
-	// 유저 추방
-	void ExpelUser(int Organizer_) {
-
-	}
-
-	void ChatToAll() {
-
-	}
-
 	void AddUser(int user_) {
 
 		std::lock_guard<std::mutex> guard(psLock);
