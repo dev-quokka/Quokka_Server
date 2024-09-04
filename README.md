@@ -37,7 +37,6 @@
 
 - #### Matching
   
-<br>
 
 #### 일반전
 
@@ -80,6 +79,9 @@
 <br>
 
 ![찐 파티](https://github.com/user-attachments/assets/a42bfa9c-1aa8-4f0d-9719-b93739c1d067)
+
+
+<br>
 
 
 <br>
