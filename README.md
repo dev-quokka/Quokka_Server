@@ -51,6 +51,9 @@
 
 <br>
 
+![친구 drawio](https://github.com/user-attachments/assets/748fc0c6-18ec-4ce2-b09d-885261d198e5)
+
+
 <br>
 
 - #### Party
