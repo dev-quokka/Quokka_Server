@@ -59,6 +59,7 @@
 - #### Party
 
 <br>
+![찐 파티](https://github.com/user-attachments/assets/2e6d05eb-2215-4b9b-ae73-1379b30bc4cf)
 
 <br>
 
