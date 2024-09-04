@@ -304,6 +304,7 @@ void PacketManager::FindUserFriendsInfo(UINT32 clientIndex_, UINT16 packetSize_,
 			FindFriendsRes.PacketId = (UINT16)PACKET_ID::FIND_FRIENDS_RESPONSE;
 			FindFriendsRes.PacketLength = sizeof(FIND_FRIENDS_RESPONSE);
 			FindFriendsRes.friendInfo = *(FriendsInfo[i]);
+			std::cout <<"·¹º§ : " << FriendsInfo[i]->userLevel << std::endl;
 			SendPacketFunc(clientIndex_, sizeof(FIND_FRIENDS_RESPONSE), (char*)&FindFriendsRes);
 		}
 
