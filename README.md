@@ -35,9 +35,20 @@
 
 <br>
 
+<br>
+
+- #### Login
+  
+<br>
+
+![로그인인 drawio](https://github.com/user-attachments/assets/c00dc820-349c-42fd-a169-215bd8e3d30b)
+
+<br>
+
+<br>
 - #### Matching
   
-
+<br> 
 #### 일반전
 
 ![일반전 흐음 drawio](https://github.com/user-attachments/assets/6e451305-66e7-4be3-82ac-68575e360dac)
@@ -49,17 +60,6 @@
 
 ![ㄹㅇ경쟁전](https://github.com/user-attachments/assets/78d7d88e-51c4-4fbf-b354-7e2d0ec82011)
 
-
-<br>
-
-
-<br>
-
-- #### Login
-  
-<br>
-
-![로그인인 drawio](https://github.com/user-attachments/assets/c00dc820-349c-42fd-a169-215bd8e3d30b)
 
 <br>
 
