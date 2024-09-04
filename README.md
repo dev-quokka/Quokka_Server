@@ -13,3 +13,8 @@
 - 로그인 성공여부와 함께 클라이언트에게 친구 목록을 구조체로 보내 줍니다.
 
 ![친구불러옴](https://github.com/user-attachments/assets/d6764090-49eb-4b86-8a57-c053aae505ff)
+
+
+- 접속종료가 되면 정보가 초기화됨으로 재접속이 가능합니다.
+
+![재접속](https://github.com/user-attachments/assets/3ac3630b-68c3-42ec-9a90-9662c83cf2f1)
