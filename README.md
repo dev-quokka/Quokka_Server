@@ -24,7 +24,8 @@
 <br>  
 
 # [설계]
-- 
+
+[Uploading 비동기 포폴 2차.drawio…]()
 
 <br>
 
