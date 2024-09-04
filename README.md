@@ -66,10 +66,10 @@
 
 <br>
 
-![경쟁전](https://github.com/user-attachments/assets/aabe828e-629e-44ff-8a26-bb531c17a4bf)
-
-
 #### 경쟁전
+
+![경쟁전](https://github.com/user-attachments/assets/2fcfe184-51e2-435c-b054-3b96e8d86740)
+
 
 <br>
 
