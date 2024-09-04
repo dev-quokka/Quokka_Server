@@ -6,7 +6,7 @@
 
 <br>  
 
-최근에 플레이 한 게임 중 만들기 괜찮다고 느꼈던 배틀그라운드의 로비 시스템을 본따서 로그인, 친구, 파티, 매칭시스템을 구현 해 보았습니다
+최근에 플레이 한 게임 중 만들기 괜찮다고 느꼈던 배틀그라운드의 로비 시스템을 본따서 로그인, 친구, 파티, 매칭시스템을 구현 해 보았습니다.
 
 개발기간 : 2024.08.01 ~ 2024.09.01
 
@@ -68,15 +68,14 @@
 
 #### 일반전
 
-![존댓말 일반전](https://github.com/user-attachments/assets/c6ddd0a6-e278-434e-8412-ee3f75db48f7)
+![일반전 흐음 drawio](https://github.com/user-attachments/assets/6e451305-66e7-4be3-82ac-68575e360dac)
 
 
 <br>
 
 #### 경쟁전
 
-![경쟁전 흐음 drawio](https://github.com/user-attachments/assets/f69150e8-ab37-4b8a-8fd3-9b9df33a3627)
-
+![ㄹㅇ경쟁전](https://github.com/user-attachments/assets/78d7d88e-51c4-4fbf-b354-7e2d0ec82011)
 
 
 <br>
