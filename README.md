@@ -28,7 +28,7 @@
 
 <br>  
 
-![비동기 포폴 2차 drawio](https://github.com/user-attachments/assets/2d3875e3-23a0-4b94-b647-b192b082cce7)
+![비동기 포폴 2차 drawio](https://github.com/user-attachments/assets/091ebb0a-2f48-4116-8133-e04b5fe5f075)
 
 
 <br>
