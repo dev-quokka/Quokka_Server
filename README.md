@@ -25,12 +25,16 @@
 
 # [설계]
 
+<br>  
+
 ![비동기 포폴 2차 drawio](https://github.com/user-attachments/assets/2d3875e3-23a0-4b94-b647-b192b082cce7)
 
 
 <br>
 
 # [화면단]
+
+<br>  
 
 - 아이디, 비밀번호 체크를 하며 로그인을 성공 여부를 서버가 전송 해 줍니다.
   
