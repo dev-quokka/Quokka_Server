@@ -127,8 +127,8 @@ public:
 				FriendInfo* temp_friendInfo = new FriendInfo;
 				temp_friendInfo->userPkNum = std::stoi(Row[0]);
 				temp_friendInfo->id = (Row[1]);
-				temp_friendInfo->partyIdx = std::stoi(Row[2]);
-				temp_friendInfo->userLevel = std::stoi(Row[3]);
+				temp_friendInfo->userLevel = std::stoi(Row[2]);
+				temp_friendInfo->partyIdx = std::stoi(Row[3]);
 				FriendsInfo.emplace_back(temp_friendInfo);
 			}
 			mysql_free_result(Result);
