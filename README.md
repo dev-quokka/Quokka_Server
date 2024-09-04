@@ -25,7 +25,8 @@
 
 # [설계]
 
-[Uploading 비동기 포폴 2차.drawio…]()
+![비동기 포폴 2차 drawio](https://github.com/user-attachments/assets/2d3875e3-23a0-4b94-b647-b192b082cce7)
+
 
 <br>
 
