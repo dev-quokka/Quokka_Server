@@ -29,6 +29,24 @@
 
 <br>  
 
+- #### Matching
+  
+<br>
+
+#### 일반전
+
+![일반전 흐음 drawio](https://github.com/user-attachments/assets/6e451305-66e7-4be3-82ac-68575e360dac)
+
+
+<br>
+
+#### 경쟁전
+
+![ㄹㅇ경쟁전](https://github.com/user-attachments/assets/78d7d88e-51c4-4fbf-b354-7e2d0ec82011)
+
+
+<br>
+
 - #### Server Flow
 
 ![비동기 포폴 2차 drawio](https://github.com/user-attachments/assets/b88f64ab-942f-430d-8713-1d96ed722734)
@@ -61,24 +79,6 @@
 <br>
 
 ![찐 파티](https://github.com/user-attachments/assets/a42bfa9c-1aa8-4f0d-9719-b93739c1d067)
-
-
-<br>
-
-- #### Matching
-  
-<br>
-
-#### 일반전
-
-![일반전 흐음 drawio](https://github.com/user-attachments/assets/6e451305-66e7-4be3-82ac-68575e360dac)
-
-
-<br>
-
-#### 경쟁전
-
-![ㄹㅇ경쟁전](https://github.com/user-attachments/assets/78d7d88e-51c4-4fbf-b354-7e2d0ec82011)
 
 
 <br>
