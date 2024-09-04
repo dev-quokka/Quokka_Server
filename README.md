@@ -1,4 +1,4 @@
-![존댓말 일반전](https://github.com/user-attachments/assets/e7f396c4-cdc7-4ad2-9c1c-486de3d58643)![존댓말 일반전](https://github.com/user-attachments/assets/e9bff138-5b26-4466-8bb5-05198291dbbd)# 비동기 처리를 이용한 게임 서버 로비 시스템 개발 (C++ 개인 프로젝트)
+# 비동기 처리를 이용한 게임 서버 로비 시스템 개발 (C++ 개인 프로젝트)
 
 <br>  
 
