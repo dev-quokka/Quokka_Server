@@ -45,18 +45,18 @@
 
 <br>
 
-- #### Matching (일반, 경쟁)
+- #### Matching 
   
 <br> 
 
-#### 일반전
+##### 일반전
 
 ![일반전 흐음 drawio](https://github.com/user-attachments/assets/6e451305-66e7-4be3-82ac-68575e360dac)
 
 
 <br>
 
-#### 경쟁전
+##### 경쟁전
 
 ![ㄹㅇ경쟁전](https://github.com/user-attachments/assets/78d7d88e-51c4-4fbf-b354-7e2d0ec82011)
 
