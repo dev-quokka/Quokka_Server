@@ -29,7 +29,7 @@
 
 <br>  
 
-- Server Flow
+- #### Server Flow
 
 ![비동기 포폴 2차 drawio](https://github.com/user-attachments/assets/b88f64ab-942f-430d-8713-1d96ed722734)
 
@@ -37,7 +37,7 @@
 
 <br>
 
-- #### Login 설계
+- #### Login
 
 ![로그인](https://github.com/user-attachments/assets/0ccc35ef-307e-4233-993f-d62f339562ef)
 
@@ -45,21 +45,21 @@
 
 <br>
 
-#### Friends 설계
+- #### Friends
 
 <br>
 
 <br>
 
-#### Party 설계
+- #### Party
 
 <br>
 
 <br>
 
-#### Matching 설계
+#### Matching
 
-- 
+
 
 <br>
 
