@@ -28,9 +28,13 @@
 ![로그인 체크](https://github.com/user-attachments/assets/ced5caf0-e7a9-4904-aad2-4e49df787ad2)
 
 
+<br>
+
 - 로그인 성공여부와 함께 클라이언트에게 친구 목록을 구조체로 보내 줍니다.
 
 ![친구불러옴](https://github.com/user-attachments/assets/d6764090-49eb-4b86-8a57-c053aae505ff)
+
+<br>
 
 
 - 접속종료가 되면 정보가 초기화됨으로 재접속이 가능합니다.
