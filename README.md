@@ -27,6 +27,8 @@
 
 ## [설계]
 
+<br>  
+
 - #### Server Flow
 
 ![비동기 포폴 2차 drawio](https://github.com/user-attachments/assets/b88f64ab-942f-430d-8713-1d96ed722734)
