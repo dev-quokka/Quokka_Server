@@ -35,9 +35,13 @@
 
 <br>
 
+<br>
+
 - Login 설계
 
 ![로그인](https://github.com/user-attachments/assets/0ccc35ef-307e-4233-993f-d62f339562ef)
+
+<br>
 
 <br>
 
@@ -45,10 +49,13 @@
 
 <br>
 
+<br>
+
 - Party 설계
 
 <br>
 
+<br>
 - Matching 설계
 
 - 
