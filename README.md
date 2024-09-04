@@ -38,6 +38,7 @@
 <br>
 
 - #### Login
+- <br>
 
 ![로그인인 drawio](https://github.com/user-attachments/assets/c00dc820-349c-42fd-a169-215bd8e3d30b)
 
@@ -58,6 +59,7 @@
 <br>
 
 - #### Matching
+- <br>
 
 #### 일반전
 
@@ -68,7 +70,8 @@
 
 #### 경쟁전
 
-![경쟁전](https://github.com/user-attachments/assets/2fcfe184-51e2-435c-b054-3b96e8d86740)
+![경쟁전 흐음 drawio](https://github.com/user-attachments/assets/f69150e8-ab37-4b8a-8fd3-9b9df33a3627)
+
 
 
 <br>
