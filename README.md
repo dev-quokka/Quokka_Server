@@ -57,6 +57,49 @@
 
 ##### 경쟁전
 
-![ㄹㅇ경쟁전](https://github.com/us인이 가능합니다.
+![ㄹㅇ경쟁전](https://github.com/user-attachments/assets/78d7d88e-51c4-4fbf-b354-7e2d0ec82011)
+
+
+<br>
+
+- #### Friends
+
+<br>
+
+![친구 drawio](https://github.com/user-attachments/assets/748fc0c6-18ec-4ce2-b09d-885261d198e5)
+
+
+<br>
+
+- #### Party
+
+<br>
+
+![찐 파티](https://github.com/user-attachments/assets/a42bfa9c-1aa8-4f0d-9719-b93739c1d067)
+
+
+<br>
+
+<br>
+
+## [화면단]
+
+<br>  
+
+- 아이디, 비밀번호 체크를 하며 로그인을 성공 여부를 서버가 전송 해 줍니다.
+  
+![로그인 체크](https://github.com/user-attachments/assets/ced5caf0-e7a9-4904-aad2-4e49df787ad2)
+
+
+<br>
+
+- 로그인 성공여부와 함께 클라이언트에게 친구 목록을 구조체로 보내 줍니다.
+
+![친구불러옴](https://github.com/user-attachments/assets/d6764090-49eb-4b86-8a57-c053aae505ff)
+
+<br>
+
+
+- 접속종료가 되면 정보가 초기화됨으로 재접속이 가능합니다.
 
 ![재접속](https://github.com/user-attachments/assets/3ac3630b-68c3-42ec-9a90-9662c83cf2f1)
