@@ -227,27 +227,6 @@ private:
 		return true;
 	}
 
-	bool SetSocketOption()
-	{
-
-		int opt = 1;
-		if (SOCKET_ERROR == setsockopt(uSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&opt, sizeof(int)))
-		{
-			std::cout << "TCP_NODELAY error : "<< GetLastError() << std::endl;
-			return false;
-		}
-
-		opt = 0;
-		if (SOCKET_ERROR == setsockopt(uSocket, SOL_SOCKET, SO_RCVBUF, (const char*)&opt, sizeof(int)))
-		{
-			std::cout << "SO_RCVBUF change error : " << GetLastError() << std::endl;
-			return false;
-		}
-		std::cout << "家南可记 汲沥" << std::endl;
-		return true;
-	}
-
-
 	UINT16 userPkNum;
 	UINT16 UserIdx;
 	UINT16 UserPartyIdx = 0;
