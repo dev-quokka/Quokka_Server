@@ -26,8 +26,6 @@ void PacketManager::Init(const UINT32 maxClient_)
 	RecvFuntionDictionary[(int)PACKET_ID::PARTY_CHAT_REQUEST] = &PacketManager::PartyChatMessage;
 
 	RecvFuntionDictionary[(int)PACKET_ID::WHISPER_CHAT_REQUEST] = &PacketManager::Whisper;*/
-	std::cout << "패킷매니저 init 성공" << std::endl;
-
 	mySQLManager = new MySQLManager;
 
 	CreateCompent(maxClient_);

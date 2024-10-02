@@ -4,7 +4,7 @@
 #include <windows.h>
 #include "ErrorCode.h"
 
-// 서버로 들어오는 패킷 확인 구조체
+//서버로 들어오는 패킷 확인 구조체
 struct PacketInfo
 {
 	UINT32 ClientIndex = 0;
@@ -17,7 +17,7 @@ struct PACKET_HEADER
 {
 	UINT16 PacketLength;
 	UINT16 PacketId;
-	UINT8 encryption=0; // 암호화를 위해 만들어둔 값
+	UINT8 encryption=0; //암호화를 위해 만들어둔 값
 };
 
 const UINT32 PACKET_HEADER_LENGTH = sizeof(PACKET_HEADER);

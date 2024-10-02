@@ -79,7 +79,6 @@ private:
 	// 유저 검색
 	void FindUserById(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_);
 
-
 	//==== <친구> ====
 	void FindUserFriends(UINT32 clientIndex_, UINT16 packetSize_, char* pPacket_);
 
