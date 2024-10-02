@@ -151,11 +151,11 @@ public:
 			stLinger.l_onoff = 1;
 		}
 
-		//socketClose소켓의 데이터 송수신을 모두 중단 시킨다.
-		shutdown(uSocket, SD_BOTH);
-
 		//소켓 옵션을 설정한다.
 		setsockopt(uSocket, SOL_SOCKET, SO_LINGER, (char*)&stLinger, sizeof(stLinger));
+
+		//socketClose소켓의 데이터 송수신을 모두 중단 시킨다.
+		shutdown(uSocket, SD_BOTH);
 
 		uIsConnect = 0;
 		//소켓 연결을 종료 시킨다.
