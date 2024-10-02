@@ -9,7 +9,7 @@ const UINT32 MAX_SOCK_RECVBUF = 1024;	// 소켓 버퍼의 크기
 enum class IOOperation {
 	ACCEPT,
 	RECV,
-	SEND
+	SEND,
 };
 
 struct OverlappedEx {
