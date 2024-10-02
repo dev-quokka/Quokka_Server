@@ -265,7 +265,7 @@ private:
 
 		user->Close(isForce_);
 
-		// 유저에게 디스컨넥 패킷 보내는 close 만들자.
+		// 패킷단에서도 유저 삭제
 		OnClose(clientIndex);
 	}
 
