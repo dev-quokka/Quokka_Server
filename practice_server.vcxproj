@@ -132,10 +132,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\practice_client\main.cpp" />
+    <ClCompile Include="..\practice_client\소스.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PacketManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\practice_client\Define.h" />
+    <ClInclude Include="..\practice_client\Friends.h" />
+    <ClInclude Include="..\practice_client\Packet.h" />
+    <ClInclude Include="..\practice_client\PacketManager.h" />
     <ClInclude Include="Define.h" />
     <ClInclude Include="ErrorCode.h" />
     <ClInclude Include="MySQLManager.h" />
