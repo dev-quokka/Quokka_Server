@@ -103,7 +103,8 @@
 
 - 클라이언트에서 파티초대, 친구삭제, 귓속말등을 위해 필요한 최소 정보만을 서버로 부터 전송 받습니다.
   
-![친구상세목록](https://github.com/user-attachments/assets/bdbc7a11-2278-4bba-9ed3-e4a2db24be86)
+
+![친구상세목록](https://github.com/user-attachments/assets/adbe67b2-cef9-41e0-9a67-50c3b226aff0)
 
 
 <br>
