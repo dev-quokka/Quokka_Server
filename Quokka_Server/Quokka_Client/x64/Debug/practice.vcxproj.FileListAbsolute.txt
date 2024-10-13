@@ -1,0 +1,3 @@
+C:\fistC++\practice\x64\Debug\practice_client.exe
+C:\fistC++\practice_client\x64\Debug\practice_client.exe
+C:\Users\82104\Desktop\Quokka_Server\Quokka_Client\x64\Debug\practice_client.exe
