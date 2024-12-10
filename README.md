@@ -43,6 +43,24 @@
 ![로그인인 drawio](https://github.com/user-attachments/assets/c00dc820-349c-42fd-a169-215bd8e3d30b)
 
 <br>
+
+- #### Friends
+
+<br>
+
+![친구 drawio](https://github.com/user-attachments/assets/748fc0c6-18ec-4ce2-b09d-885261d198e5)
+
+
+<br>
+
+- #### Party
+
+<br>
+
+![찐 파티](https://github.com/user-attachments/assets/a42bfa9c-1aa8-4f0d-9719-b93739c1d067)
+
+
+<br>
 <br>
 
 - #### Matching 
@@ -63,23 +81,6 @@
 
 <br>
 
-- #### Friends
-
-<br>
-
-![친구 drawio](https://github.com/user-attachments/assets/748fc0c6-18ec-4ce2-b09d-885261d198e5)
-
-
-<br>
-
-- #### Party
-
-<br>
-
-![찐 파티](https://github.com/user-attachments/assets/a42bfa9c-1aa8-4f0d-9719-b93739c1d067)
-
-
-<br>
 <!--
 <br>
 
