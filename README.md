@@ -34,7 +34,8 @@
 
 - #### Server Flow
 
-![비동기 포폴 2차 drawio](https://github.com/user-attachments/assets/b88f64ab-942f-430d-8713-1d96ed722734)
+![Server Flow](https://github.com/user-attachments/assets/fb35e301-e174-4e29-b73c-d35ce0a86582)
+
 
 <br>
 
@@ -42,7 +43,8 @@
   
 <br>
 
-![로그인인 drawio](https://github.com/user-attachments/assets/c00dc820-349c-42fd-a169-215bd8e3d30b)
+![Login](https://github.com/user-attachments/assets/dcf59376-8d2d-4227-ae70-a10492446b5f)
+
 
 <br>
 
@@ -50,7 +52,7 @@
 
 <br>
 
-![친구 drawio](https://github.com/user-attachments/assets/748fc0c6-18ec-4ce2-b09d-885261d198e5)
+![Friends](https://github.com/user-attachments/assets/06bcc676-c73b-4853-8106-d93fbc466135)
 
 
 <br>
@@ -59,7 +61,7 @@
 
 <br>
 
-![찐 파티](https://github.com/user-attachments/assets/a42bfa9c-1aa8-4f0d-9719-b93739c1d067)
+![Party](https://github.com/user-attachments/assets/87690bda-355e-4943-b8c2-63703f98b86a)
 
 
 <br>
@@ -71,21 +73,20 @@
 
 - 아이디, 비밀번호 체크를 하며 로그인을 성공 여부를 서버가 전송 해 줍니다.
   
-![로그인 체크](https://github.com/user-attachments/assets/ced5caf0-e7a9-4904-aad2-4e49df787ad2)
-
+![LoginCheck](https://github.com/user-attachments/assets/f660a983-d6b5-41c7-aafc-d49c9e7bc6b9)
 
 <br>
 
 - 로그인 성공여부와 함께 클라이언트에게 친구 목록을 구조체로 보내 줍니다. 클라이언트의 처음 화면에는 접속중인 친구수를 확인 가능합니다.
 
-![친구불러옴](https://github.com/user-attachments/assets/d6764090-49eb-4b86-8a57-c053aae505ff)
+![SendFriendsInfo](https://github.com/user-attachments/assets/1165252d-6225-4931-88de-79c05a20b1e8)
 
 <br>
 
 - 클라이언트에서 파티초대, 친구삭제, 귓속말등을 위해 필요한 최소 정보만을 서버로 부터 전송 받습니다.
   
 
-![친구상세목록](https://github.com/user-attachments/assets/adbe67b2-cef9-41e0-9a67-50c3b226aff0)
+![CheckFriends](https://github.com/user-attachments/assets/4f138842-a470-48fa-909f-28bb0d1b58f2)
 
 
 <br>
@@ -93,5 +94,7 @@
 
 - 접속종료 및 로그아웃이 되면 정보가 초기화됨으로 재접속 및 로그인이 가능합니다.
 
-![재접속](https://github.com/user-attachments/assets/3ac3630b-68c3-42ec-9a90-9662c83cf2f1)
+
+![Logout](https://github.com/user-attachments/assets/61ee2b6a-2830-4a83-baee-596f5fc53e5e)
+
 
