@@ -14,7 +14,7 @@
 
 <br>
 
-#### ㅇ 개발 기간 : 2023.03 ~2023.11
+#### ㅇ 개발 기간 : 2023.03 ~ 2023.11
 
 #### ㅇ 프로젝트 소개서 - [프로젝트 소개서 [C++ IOCP 프로젝트].pdf](https://github.com/user-attachments/files/18075390/C%2B%2B.IOCP.pdf)
 
